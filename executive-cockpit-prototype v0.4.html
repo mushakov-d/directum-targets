@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Навигатор руководителя v0.4 — ТехноГрупп</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f2f5;--card-bg:#fff;
+  --primary:#1a3a6b;--primary-light:#2563eb;
+  --green:#16a34a;--green-bg:#f0fdf4;
+  --yellow:#d97706;--yellow-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --text:#1f2937;--text-2:#6b7280;--text-3:#9ca3af;
+  --text-muted:#6b7280;
+  --border:#e5e7eb;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.1);
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;height:56px;background:var(--primary);display:flex;align-items:center;padding:0 20px;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.header-logo{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:15px;white-space:nowrap}
+.header-logo .logo-badge{background:#2563eb;color:#fff;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700}
+.header-sep{width:1px;height:28px;background:rgba(255,255,255,0.2)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.header-date{color:rgba(255,255,255,0.75);font-size:13px;white-space:nowrap}
+.header-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:13px;transition:background 0.15s}
+.header-btn:hover{background:rgba(255,255,255,0.22)}
+.se-dropdown-wrap{position:relative}
+.se-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.se-btn:hover{background:rgba(255,255,255,0.22)}
+.se-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-md);border:1px solid var(--border);min-width:220px;z-index:200;padding:6px 0}
+.se-dropdown.open{display:block}
+.se-item{padding:8px 14px;cursor:pointer;font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px}
+.se-item:hover{background:#f3f4f6}
+.se-item.active{color:var(--primary);font-weight:600}
+.se-item .se-radio{width:14px;height:14px;border-radius:50%;border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.se-item.active .se-radio{border-color:var(--primary);background:var(--primary)}
+.se-item.child{padding-left:32px;color:var(--text-2)}
+.se-item.child.active{color:var(--primary);font-weight:600}
+.header-avatar{width:32px;height:32px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;cursor:pointer}
+.header-user{color:#fff;font-size:13px;line-height:1.2}
+.header-user .uname{font-weight:600}
+.header-user .urole{color:rgba(255,255,255,0.6);font-size:11px}
+
+/* MAIN LAYOUT */
+.main{padding:16px 20px;display:flex;flex-direction:column;gap:14px;max-width:1920px;margin:0 auto}
+
+/* SECTION CARD */
+.section-card{background:var(--card-bg);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden}
+.section-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.section-title{font-size:14px;font-weight:700;color:var(--text)}
+.section-sep{width:1px;height:16px;background:var(--border)}
+.section-link{margin-left:auto;color:var(--primary-light);font-size:13px;cursor:pointer;white-space:nowrap;text-decoration:none}
+.section-link:hover{text-decoration:underline}
+
+/* PERIOD TABS */
+.period-tabs{display:flex;gap:2px;background:#f3f4f6;border-radius:6px;padding:2px}
+.period-tab{padding:3px 10px;border-radius:5px;font-size:12px;cursor:pointer;color:var(--text-2);border:none;background:none;transition:all 0.15s;white-space:nowrap}
+.period-tab.active{background:#fff;color:var(--primary);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:12px 14px}
+.kpi-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 10px;cursor:pointer;transition:box-shadow 0.15s;position:relative;overflow:hidden}
+.kpi-card:hover{box-shadow:var(--shadow-md)}
+.kpi-card.green{border-left:3px solid var(--green)}
+.kpi-card.yellow{border-left:3px solid var(--yellow)}
+.kpi-card.red{border-left:3px solid var(--red)}
+.kpi-name{font-size:11px;color:var(--text-2);font-weight:500;line-height:1.3;margin-bottom:2px}
+.kpi-inverted-tag{font-size:10px;color:var(--text-3);display:block;margin-bottom:4px}
+.kpi-value{font-size:20px;font-weight:700;color:var(--text);line-height:1.1}
+.kpi-unit{font-size:11px;color:var(--text-2)}
+.kpi-plan{font-size:11px;color:var(--text-3);margin-top:2px}
+.kpi-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.kpi-pct{font-size:12px;font-weight:700}
+.kpi-pct.green{color:var(--green)}
+.kpi-pct.yellow{color:var(--yellow)}
+.kpi-pct.red{color:var(--red)}
+.kpi-trend{font-size:11px;color:var(--text-2)}
+.kpi-trend.green{color:var(--green)}
+.kpi-trend.yellow{color:var(--yellow)}
+.kpi-trend.red{color:var(--red)}
+.kpi-sparkline{position:absolute;bottom:6px;right:6px;opacity:0.18}
+
+/* MIDDLE ROW */
+.middle-row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+
+/* GOALS */
+.goals-body{padding:4px 0 8px}
+.goal-row{display:grid;grid-template-columns:18px 10px 1fr auto auto 52px 90px;align-items:center;gap:6px;padding:7px 14px;border-bottom:1px solid #f3f4f6;transition:background 0.1s;cursor:default}
+.goal-row:hover{background:#f9fafb}
+.goal-row.level-1{font-weight:600;font-size:13px}
+.goal-row.level-2{font-size:12px;background:#fafafa;padding-left:28px;grid-template-columns:18px 10px 1fr auto auto 52px 90px}
+.goal-toggle{cursor:pointer;color:var(--text-3);font-size:10px;width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:3px;flex-shrink:0;transition:transform 0.15s}
+.goal-toggle:hover{color:var(--primary);background:#e5e7eb}
+.goal-toggle.open{transform:rotate(90deg)}
+.goal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.goal-dot.green{background:var(--green)}
+.goal-dot.yellow{background:var(--yellow)}
+.goal-dot.red{background:var(--red)}
+.goal-name{cursor:pointer;color:var(--text)}
+.goal-name:hover{color:var(--primary);text-decoration:underline}
+.goal-owner{font-size:11px;color:var(--text-3);white-space:nowrap}
+.goal-date{font-size:11px;color:var(--text-3);white-space:nowrap}
+.goal-pct{font-size:12px;font-weight:700;text-align:right}
+.goal-pct.green{color:var(--green)}
+.goal-pct.yellow{color:var(--yellow)}
+.goal-pct.red{color:var(--red)}
+.goal-bar{height:4px;background:#f3f4f6;border-radius:2px;overflow:hidden;width:80px}
+.goal-bar-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.goal-bar-fill.green{background:var(--green)}
+.goal-bar-fill.yellow{background:var(--yellow)}
+.goal-bar-fill.red{background:var(--red)}
+.goal-kr{display:grid;grid-template-columns:16px 1fr auto auto 50px 80px;align-items:center;gap:6px;padding:5px 14px 5px 52px;background:#f8fafc;border-bottom:1px solid #eef0f3;font-size:12px}
+.kr-icon{font-size:10px;color:var(--text-3)}
+.kr-name{color:var(--text-2)}
+.kr-fact{color:var(--text);font-weight:500;white-space:nowrap}
+.kr-plan{color:var(--text-3);white-space:nowrap}
+.kr-pct{font-size:11px;font-weight:700;text-align:right}
+.kr-pct.green{color:var(--green)}
+.kr-pct.yellow{color:var(--yellow)}
+.kr-pct.red{color:var(--red)}
+.kr-bar{height:3px;background:#e5e7eb;border-radius:2px;overflow:hidden;width:70px}
+
+/* EMPLOYEES */
+.employees-body{padding:14px}
+.emp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.emp-stat{background:#f9fafb;border-radius:var(--radius);padding:10px 12px;text-align:center}
+.emp-stat .val{font-size:22px;font-weight:700;color:var(--primary)}
+.emp-stat .lbl{font-size:11px;color:var(--text-2)}
+.emp-stat .val.red{color:var(--red)}
+.emp-divs{display:flex;flex-direction:column;gap:5px}
+.emp-div-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.emp-div-name{width:120px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.emp-div-bar{flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.emp-div-fill{height:100%;background:var(--primary-light);border-radius:3px}
+.emp-div-cnt{width:32px;text-align:right;font-weight:600;color:var(--text)}
+
+/* PROJECTS */
+.projects-table{width:100%;border-collapse:collapse;font-size:13px}
+.projects-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:var(--text-2);border-bottom:2px solid var(--border);background:#fafafa}
+.projects-table td{padding:9px 12px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+.projects-table tr:last-child td{border-bottom:none}
+.projects-table tr:hover td{background:#f9fafb;cursor:pointer}
+.proj-name{font-weight:600;color:var(--text)}
+.proj-goal{font-size:12px;color:var(--primary-light)}
+.proj-owner{color:var(--text-2);font-size:12px}
+.proj-progress-wrap{display:flex;align-items:center;gap:8px}
+.proj-bar{width:80px;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;flex-shrink:0}
+.proj-bar-fill{height:100%;border-radius:3px}
+.proj-bar-fill.green{background:var(--green)}
+.proj-bar-fill.yellow{background:var(--yellow)}
+.proj-bar-fill.red{background:var(--red)}
+.proj-pct{font-size:12px;font-weight:600;color:var(--text-2)}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+.status-badge.green{background:var(--green-bg);color:var(--green)}
+.status-badge.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.status-badge.red{background:var(--red-bg);color:var(--red)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.projects-subtitle{font-size:12px;color:var(--text-muted);margin-left:10px}
+
+/* DOCUMENTS */
+.docs-body{display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:0}
+.docs-col{padding:14px;border-right:1px solid var(--border)}
+.docs-col:last-child{border-right:none}
+.docs-group-title{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;margin-top:10px}
+.docs-group-title:first-child{margin-top:0}
+.doc-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;border:1px solid transparent}
+.doc-item:hover{background:#f3f4f6;border-color:var(--border)}
+.doc-icon{font-size:16px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-date{font-size:11px;color:var(--text-3)}
+.doc-arrow{color:var(--text-3);font-size:12px;flex-shrink:0}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:500;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--radius-lg);box-shadow:0 8px 40px rgba(0,0,0,0.18);width:620px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700;color:var(--text)}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:20px;line-height:1;padding:2px 6px;border-radius:4px}
+.modal-close:hover{background:#f3f4f6;color:var(--text)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.modal-stat{background:#f9fafb;border-radius:var(--radius);padding:12px;text-align:center}
+.modal-stat .ms-label{font-size:11px;color:var(--text-2);margin-bottom:4px}
+.modal-stat .ms-value{font-size:20px;font-weight:700}
+.modal-stat .ms-value.green{color:var(--green)}
+.modal-stat .ms-value.yellow{color:var(--yellow)}
+.modal-stat .ms-value.red{color:var(--red)}
+.modal-chart-title{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:8px}
+.modal-chart{background:#f9fafb;border-radius:var(--radius);padding:12px;margin-bottom:16px}
+.modal-section-title{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;margin-top:14px}
+.mini-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px}
+.mini-bar-label{width:110px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-bar-track{flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:3px;background:var(--primary-light)}
+.mini-bar-val{width:50px;text-align:right;font-weight:600;color:var(--text)}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-primary{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:600}
+.btn-primary:hover{background:#15336b}
+.btn-secondary{background:#f3f4f6;color:var(--text);border:none;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer}
+.btn-secondary:hover{background:#e5e7eb}
+.warn-box{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:12px}
+.goal-modal-pct{font-size:48px;font-weight:800;text-align:center;margin:12px 0 6px}
+.goal-modal-pct.green{color:var(--green)}
+.goal-modal-pct.yellow{color:var(--yellow)}
+.goal-modal-pct.red{color:var(--red)}
+.goal-modal-bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px}
+.milestone-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:13px}
+.milestone-row:last-child{border-bottom:none}
+.ms-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.ms-name{flex:1;color:var(--text)}
+.ms-date{font-size:11px;color:var(--text-3);white-space:nowrap}
+.modal-kr-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid #f3f4f6}
+.modal-kr-row:last-child{border-bottom:none}
+.modal-kr-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.modal-kr-dot.green{background:var(--green)}
+.modal-kr-dot.yellow{background:var(--yellow)}
+.modal-kr-dot.red{background:var(--red)}
+.modal-kr-name{flex:1;color:var(--text-2)}
+.modal-kr-vals{white-space:nowrap;font-weight:600;color:var(--text)}
+.modal-kr-pct{width:42px;text-align:right;font-weight:700}
+.modal-kr-pct.green{color:var(--green)}
+.modal-kr-pct.yellow{color:var(--yellow)}
+.modal-kr-pct.red{color:var(--red)}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:#1a3a6b;color:white;padding:12px 20px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.25);animation:toastIn 0.2s ease;max-width:320px}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE FOOTER */
+.page-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:var(--bg);border-top:1px solid var(--border);font-size:12px;color:var(--text-muted);margin-top:8px}
+.footer-admin-link{cursor:pointer;color:var(--text-muted);font-size:12px;transition:color 0.15s}
+.footer-admin-link:hover{color:var(--primary)}
+.footer-copy{font-size:12px;color:var(--text-muted);opacity:0.6}
+
+/* ADMIN PANEL */
+.admin-overlay{display:none;position:fixed;inset:0;background:#f0f2f5;z-index:600;flex-direction:column}
+.admin-overlay.open{display:flex}
+.admin-panel{display:flex;flex-direction:column;height:100vh;max-width:1200px;width:100%;margin:0 auto;background:#fff;box-shadow:0 0 30px rgba(0,0,0,0.1)}
+.admin-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--primary);color:#fff}
+.admin-back-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;transition:background 0.15s}
+.admin-back-btn:hover{background:rgba(255,255,255,0.25)}
+.admin-title{font-size:16px;font-weight:600;color:#fff}
+.admin-body{display:flex;flex:1;overflow:hidden}
+.admin-nav{width:200px;border-right:1px solid var(--border);padding:16px 0;background:#fafbfc}
+.admin-nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:14px;color:var(--text-muted);border-left:3px solid transparent;transition:all 0.15s}
+.admin-nav-item:hover{background:#f0f2f5;color:var(--primary)}
+.admin-nav-item.active{background:#eff6ff;color:var(--primary);border-left-color:var(--primary);font-weight:600}
+.admin-nav-icon{font-size:16px}
+.admin-content{flex:1;overflow-y:auto;padding:24px}
+.admin-footer{display:flex;align-items:center;gap:16px;padding:14px 24px;border-top:1px solid var(--border);background:#fafbfc}
+.admin-apply-btn{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s}
+.admin-apply-btn:hover{background:#1e4a8a}
+.admin-hint{font-size:12px;color:var(--text-muted)}
+.admin-section-title{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:6px}
+.admin-section-desc{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{text-align:left;padding:8px 12px;background:#f5f7fa;border-bottom:2px solid var(--border);color:var(--text-muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.3px}
+.admin-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-table tr:hover td{background:#f9fbff}
+.admin-toggle{position:relative;width:36px;height:20px;background:#cbd5e1;border-radius:10px;transition:background 0.2s;cursor:pointer;border:none;outline:none;flex-shrink:0}
+.admin-toggle.on{background:var(--green)}
+.admin-toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.admin-toggle.on::after{left:18px}
+.admin-threshold-input{width:60px;border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:13px;text-align:center}
+.admin-threshold-input:focus{outline:none;border-color:var(--primary)}
+.admin-doc-group{margin-bottom:20px}
+.admin-doc-group-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.admin-doc-item{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px}
+.admin-doc-item label{flex:1;cursor:pointer}
+.admin-doc-item input[type=checkbox]{cursor:pointer}
+.admin-projects-rules{display:flex;flex-direction:column;gap:16px}
+.admin-rule-row{display:flex;align-items:center;gap:12px;padding:14px;background:#f9fbff;border-radius:8px;border:1px solid var(--border)}
+.admin-rule-label{font-size:13px;font-weight:600;color:var(--text);min-width:200px}
+.admin-rule-desc{font-size:12px;color:var(--text-muted);flex:1}
+.admin-rule-value{font-size:13px;font-weight:700;color:var(--primary);background:#eff6ff;border-radius:4px;padding:2px 8px}
+.admin-select{border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-size:13px;background:#fff;cursor:pointer}
+.admin-select:focus{outline:none;border-color:var(--primary)}
+
+/* RESPONSIVE FALLBACK */
+@media(max-width:1400px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.middle-row{grid-template-columns:1fr}.docs-body{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">
+    <span class="logo-badge">ТГ</span>
+    ТехноГрупп
+    <div class="header-sep"></div>
+    <span style="font-weight:400;font-size:14px;opacity:0.85">Навигатор руководителя</span>
+  </div>
+  <div class="header-right">
+    <span class="header-date">1 марта 2026</span>
+    <button class="header-btn" onclick="openAdminPanel()">&#9881; Администрирование</button>
+    <div class="se-dropdown-wrap">
+      <button class="se-btn" id="seBtnLabel" onclick="toggleSEDropdown()">&#127970; Вся компания &#9662;</button>
+      <div class="se-dropdown" id="seDropdown">
+        <div class="se-item active" data-preset="company" onclick="selectSE('company','Вся компания')">
+          <span class="se-radio"></span> Вся компания
+        </div>
+        <div class="se-item child" data-preset="commercial" onclick="selectSE('commercial','Коммерческий блок')">
+          <span class="se-radio"></span> Коммерческий блок
+        </div>
+        <div class="se-item child" data-preset="production" onclick="selectSE('production','Производство')">
+          <span class="se-radio"></span> Производство
+        </div>
+        <div class="se-item child" data-preset="finance" onclick="selectSE('finance','Финансы')">
+          <span class="se-radio"></span> Финансы
+        </div>
+        <div class="se-item child" data-preset="company" onclick="selectSE('company','ИТ')">
+          <span class="se-radio"></span> ИТ
+        </div>
+        <div class="se-item child" data-preset="company" onclick="selectSE('company','HR')">
+          <span class="se-radio"></span> HR
+        </div>
+        <div class="se-item child" data-preset="company" onclick="selectSE('company','Логистика')">
+          <span class="se-radio"></span> Логистика
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="header-avatar" id="headerAvatar">ИА</div>
+      <div class="header-user">
+        <div class="uname" id="headerName">Иванов А.Г.</div>
+        <div class="urole" id="headerRole">CEO</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main" id="mainContent">
+
+  <!-- KPI SECTION -->
+  <section class="section-card" id="section-kpi">
+    <div class="section-header">
+      <span class="section-title">&#128202; Ключевые показатели</span>
+      <div class="section-sep"></div>
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab" data-period="month" onclick="setPeriod('month')">Февраль 2026</button>
+        <button class="period-tab active" data-period="quarter" onclick="setPeriod('quarter')">Q1 2026 ✓</button>
+        <button class="period-tab" data-period="year" onclick="setPeriod('year')">2026 год</button>
+      </div>
+      <a class="section-link" onclick="showToast('Переход в Directum Targets → Аналитика KPI')">Все показатели →</a>
+    </div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+  </section>
+
+  <!-- MIDDLE ROW -->
+  <div class="middle-row">
+
+    <!-- GOALS -->
+    <section class="section-card" id="section-goals">
+      <div class="section-header">
+        <span class="section-title">&#127919; Цели</span>
+        <div class="section-sep"></div>
+        <div class="period-tabs" id="goalTabs">
+          <button class="period-tab active" data-gtab="year" onclick="setGoalTab('year')">Годовые ✓</button>
+          <button class="period-tab" data-gtab="quarter" onclick="setGoalTab('quarter')">Квартальные</button>
+        </div>
+        <a class="section-link" onclick="showToast('Переход в Directum Targets → Карта целей')">Все цели →</a>
+      </div>
+      <div class="goals-body" id="goalsBody"></div>
+    </section>
+
+    <!-- EMPLOYEES -->
+    <section class="section-card" id="section-employees">
+      <div class="section-header">
+        <span class="section-title">&#128101; Сотрудники</span>
+        <a class="section-link" onclick="showToast('Переход в Directum → Организационная структура')">Орг. структура →</a>
+      </div>
+      <div class="employees-body" id="employeesBody"></div>
+    </section>
+
+  </div>
+
+  <!-- PROJECTS -->
+  <section class="section-card" id="section-projects">
+    <div class="section-header">
+      <span class="section-title">&#128640; Проекты</span>
+      <span class="projects-subtitle" id="projectsSubtitle">Показаны 5 критичных из 47 · Настройка в Администрировании</span>
+      <div class="section-sep"></div>
+      <a class="section-link" onclick="showToast('Переход в модуль Управление проектами...')">Все проекты →</a>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="projects-table" id="projectsTable">
+        <thead>
+          <tr>
+            <th>Проект</th>
+            <th>Руководитель</th>
+            <th>Связанная цель</th>
+            <th>Прогресс</th>
+            <th>Дедлайн</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody id="projectsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- DOCUMENTS -->
+  <section class="section-card" id="section-docs">
+    <div class="section-header">
+      <span class="section-title">&#128196; Документы</span>
+      <a class="section-link" onclick="showToast('Переход в Directum → Документы')">Все документы →</a>
+    </div>
+    <div class="docs-body" id="docsBody"></div>
+  </section>
+
+</main>
+
+<!-- KPI MODAL -->
+<div class="modal-overlay" id="kpiModal" onclick="closeModal('kpiModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="kpiModalTitle"></span>
+      <button class="modal-close" onclick="closeModal('kpiModal')">✕</button>
+    </div>
+    <div class="modal-body" id="kpiModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('kpiModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="modal-overlay" id="goalModal" onclick="closeModal('goalModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="goalModalTitle"></span>
+      <button class="modal-close" onclick="closeModal('goalModal')">✕</button>
+    </div>
+    <div class="modal-body" id="goalModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="showToast('Переход в Directum Targets → Карта целей');closeModal('goalModal')">Перейти в карту целей →</button>
+      <button class="btn-secondary" onclick="closeModal('goalModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="projModal" onclick="closeModal('projModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="projModalTitle"></span>
+      <button class="modal-close" onclick="closeModal('projModal')">✕</button>
+    </div>
+    <div class="modal-body" id="projModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="showToast('Переход в Directum Projects → Карточка проекта');closeModal('projModal')">Перейти в Directum Projects →</button>
+      <button class="btn-secondary" onclick="closeModal('projModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Panel Full-Screen Overlay -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-panel">
+    <div class="admin-header">
+      <button class="admin-back-btn" onclick="closeAdminPanel()">← Вернуться к дашборду</button>
+      <div class="admin-title">⚙ Настройки панели · ТехноГрупп</div>
+      <div></div>
+    </div>
+    <div class="admin-body">
+      <!-- Left nav -->
+      <div class="admin-nav">
+        <div class="admin-nav-item active" data-section="blocks" onclick="switchAdminSection('blocks')">
+          <span class="admin-nav-icon">▦</span> Блоки
+        </div>
+        <div class="admin-nav-item" data-section="metrics" onclick="switchAdminSection('metrics')">
+          <span class="admin-nav-icon">📊</span> Метрики
+        </div>
+        <div class="admin-nav-item" data-section="projects" onclick="switchAdminSection('projects')">
+          <span class="admin-nav-icon">🚀</span> Проекты
+        </div>
+        <div class="admin-nav-item" data-section="documents" onclick="switchAdminSection('documents')">
+          <span class="admin-nav-icon">📄</span> Документы
+        </div>
+      </div>
+      <!-- Right content -->
+      <div class="admin-content" id="adminContent"></div>
+    </div>
+    <div class="admin-footer">
+      <button class="admin-apply-btn" onclick="applyAdminSettings()">Применить изменения</button>
+      <span class="admin-hint">Изменения вступят в силу на дашборде</span>
+    </div>
+  </div>
+</div>
+
+<footer class="page-footer">
+  <span class="footer-copy">Навигатор руководителя · ТехноГрупп · 2026</span>
+</footer>
+
+
+<script>
+// ===================== STATE =====================
+var currentPreset = 'company';
+var curPeriod = 'quarter';
+var curGoalTab = 'year';
+var currentSELabel = 'Вся компания';
+var adminSectionActive = 'blocks';
+
+var settingsState = {
+  blocks: {kpi:true, goals:true, projects:true, employees:true, docs:true},
+  kpiVisible: [true,true,true,true,true,true],
+  thresholds: {green:95, yellow:70}
+};
+
+// ===================== PRESETS CONFIG =====================
+var PRESET_INFO = {
+  company:    {name:'Иванов А.Г.', initials:'ИА', role:'CEO', roleLabel:'CEO'},
+  commercial: {name:'Лебедева В.С.', initials:'ЛВ', role:'CCO', roleLabel:'CCO'},
+  production: {name:'Козлов М.И.', initials:'КМ', role:'COO', roleLabel:'COO'},
+  finance:    {name:'Смирнова Е.А.', initials:'СЕ', role:'CFO', roleLabel:'CFO'}
+};
+
+// FIX 1: Updated period labels — month and quarter now use calendar months
+var periodLabels = {
+  month: ["Окт'25", "Ноя'25", "Дек'25", "Янв'26", "Фев'26"],
+  quarter: ["Q1'25", "Q2'25", "Q3'25", "Q4'25", "Q1'26"],
+  year: ['2022', '2023', '2024', '2025', '2026*']
+};
+</script>
+
+<script>
+// ===================== KPI DATA =====================
+var KPI = {
+  company: {
+    month: [
+      {name:'Выручка',value:'2.4',unit:'млрд ₽',plan:'2.6 млрд',pct:92,color:'yellow',trend:'up',trendTxt:'↑ +8%',history:[2.1,2.2,2.25,2.35,2.4],inverted:false},
+      {name:'EBITDA',value:'17.9',unit:'%',plan:'21%',pct:85,color:'yellow',trend:'flat',trendTxt:'→ 0%',history:[19.5,18.8,18.3,18.0,17.9],inverted:false},
+      {name:'Операц. расходы',value:'1.40',unit:'млрд ₽',plan:'1.25 млрд',pct:89,color:'yellow',trend:'down',trendTxt:'↑ +3%',history:[1.2,1.25,1.30,1.35,1.40],inverted:true},
+      {name:'NPS клиентов',value:'68',unit:'баллов',plan:'65 баллов',pct:105,color:'green',trend:'up',trendTxt:'↑ +2%',history:[64,65,66,67,68],inverted:false},
+      {name:'Производительность',value:'91',unit:'%',plan:'95%',pct:96,color:'green',trend:'flat',trendTxt:'→ 0%',history:[90,91,90,91,91],inverted:false},
+      {name:'Текучесть персонала',value:'8.2',unit:'%',plan:'6%',pct:73,color:'red',trend:'down',trendTxt:'↓ −1%',history:[9.5,9.1,8.8,8.4,8.2],inverted:true}
+    ],
+    quarter: [
+      {name:'Выручка',value:'7.2',unit:'млрд ₽',plan:'7.8 млрд',pct:92,color:'yellow',trend:'up',trendTxt:'↑ +8%',history:[6.1,6.4,6.8,7.0,7.2],inverted:false},
+      {name:'EBITDA',value:'18.4',unit:'%',plan:'21%',pct:88,color:'yellow',trend:'flat',trendTxt:'→ 0%',history:[19.0,18.8,18.2,18.5,18.4],inverted:false},
+      {name:'Операц. расходы',value:'4.1',unit:'млрд ₽',plan:'3.8 млрд',pct:89,color:'yellow',trend:'down',trendTxt:'↑ +8%',history:[3.6,3.7,3.8,3.95,4.1],inverted:true},
+      {name:'NPS клиентов',value:'68',unit:'баллов',plan:'65 баллов',pct:105,color:'green',trend:'up',trendTxt:'↑ +4%',history:[61,63,65,67,68],inverted:false},
+      {name:'Производительность',value:'93',unit:'%',plan:'95%',pct:98,color:'green',trend:'flat',trendTxt:'→ +1%',history:[91,92,93,93,93],inverted:false},
+      {name:'Текучесть персонала',value:'7.8',unit:'%',plan:'6%',pct:77,color:'red',trend:'down',trendTxt:'↓ −2%',history:[9.1,8.8,8.2,8.0,7.8],inverted:true}
+    ],
+    year: [
+      {name:'Выручка',value:'29.4',unit:'млрд ₽',plan:'28.8 млрд',pct:102,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[19.8,22.1,25.3,27.8,29.4],inverted:false},
+      {name:'EBITDA',value:'18.5',unit:'%',plan:'21%',pct:88,color:'yellow',trend:'flat',trendTxt:'→ 0%',history:[20.1,19.8,19.2,18.8,18.5],inverted:false},
+      {name:'Операц. расходы',value:'16.5',unit:'млрд ₽',plan:'15.2 млрд',pct:92,color:'yellow',trend:'down',trendTxt:'↑ прогноз',history:[11.2,12.8,13.5,14.9,16.5],inverted:true},
+      {name:'NPS клиентов',value:'70',unit:'баллов',plan:'70 баллов',pct:100,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[55,58,62,65,70],inverted:false},
+      {name:'Производительность',value:'93',unit:'%',plan:'96%',pct:97,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[85,87,89,91,93],inverted:false},
+      {name:'Текучесть персонала',value:'7.8',unit:'%',plan:'7%',pct:89,color:'yellow',trend:'down',trendTxt:'↓ прогноз',history:[12.1,10.5,9.8,9.1,7.8],inverted:true}
+    ]
+  },
+  commercial: {
+    month: [
+      {name:'Объём продаж',value:'2.4',unit:'млрд ₽',plan:'2.6 млрд',pct:92,color:'yellow',trend:'up',trendTxt:'↑ +5%',history:[2.0,2.1,2.2,2.3,2.4],inverted:false},
+      {name:'Новые клиенты',value:'5',unit:'ед.',plan:'7 ед.',pct:71,color:'yellow',trend:'flat',trendTxt:'→ 0',history:[3,4,4,5,5],inverted:false},
+      {name:'Конверсия лидов',value:'27',unit:'%',plan:'32%',pct:84,color:'yellow',trend:'down',trendTxt:'↓ −1%',history:[31,30,29,28,27],inverted:false},
+      {name:'Средний чек',value:'8.4',unit:'млн ₽',plan:'7.5 млн',pct:112,color:'green',trend:'up',trendTxt:'↑ +3%',history:[7.2,7.5,7.8,8.1,8.4],inverted:false},
+      {name:'NPS клиентов',value:'68',unit:'баллов',plan:'65 баллов',pct:105,color:'green',trend:'up',trendTxt:'↑ +1%',history:[62,64,65,67,68],inverted:false},
+      {name:'Пролонгации',value:'18',unit:'контракт',plan:'27 контрактов',pct:67,color:'yellow',trend:'flat',trendTxt:'→ 0',history:[15,17,19,20,18],inverted:false}
+    ],
+    quarter: [
+      {name:'Объём продаж',value:'7.2',unit:'млрд ₽',plan:'7.8 млрд',pct:92,color:'yellow',trend:'up',trendTxt:'↑ +8%',history:[5.9,6.2,6.5,6.9,7.2],inverted:false},
+      {name:'Новые клиенты',value:'12',unit:'ед.',plan:'20 ед.',pct:60,color:'red',trend:'down',trendTxt:'↓ −2 ед.',history:[8,10,11,13,12],inverted:false},
+      {name:'Конверсия лидов',value:'28',unit:'%',plan:'32%',pct:88,color:'yellow',trend:'down',trendTxt:'↓ −1%',history:[31,30,29,28,28],inverted:false},
+      {name:'Средний чек',value:'8.2',unit:'млн ₽',plan:'7.5 млн',pct:109,color:'green',trend:'up',trendTxt:'↑ +5%',history:[7.0,7.2,7.5,7.8,8.2],inverted:false},
+      {name:'NPS клиентов',value:'68',unit:'баллов',plan:'65 баллов',pct:105,color:'green',trend:'up',trendTxt:'↑ +3%',history:[61,63,65,67,68],inverted:false},
+      {name:'Пролонгации',value:'51',unit:'контракт',plan:'80 контрактов',pct:64,color:'red',trend:'down',trendTxt:'↓ отстаём',history:[55,58,61,64,51],inverted:false}
+    ],
+    year: [
+      {name:'Объём продаж',value:'29.4',unit:'млрд ₽',plan:'31.2 млрд',pct:94,color:'yellow',trend:'up',trendTxt:'↑ прогноз',history:[21.2,23.5,25.8,27.9,29.4],inverted:false},
+      {name:'Новые клиенты',value:'48',unit:'ед.',plan:'60 ед.',pct:80,color:'yellow',trend:'up',trendTxt:'↑ прогноз',history:[28,32,38,44,48],inverted:false},
+      {name:'Конверсия лидов',value:'28',unit:'%',plan:'32%',pct:88,color:'yellow',trend:'down',trendTxt:'↓ тренд',history:[34,33,31,30,28],inverted:false},
+      {name:'Средний чек',value:'8.2',unit:'млн ₽',plan:'8.0 млн',pct:103,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[6.5,6.9,7.3,7.7,8.2],inverted:false},
+      {name:'NPS клиентов',value:'70',unit:'баллов',plan:'70 баллов',pct:100,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[52,56,60,65,70],inverted:false},
+      {name:'Пролонгации',value:'186',unit:'контракт',plan:'240 контрактов',pct:78,color:'yellow',trend:'down',trendTxt:'↓ риск',history:[190,210,225,230,186],inverted:false}
+    ]
+  },
+  production: {
+    month: [
+      {name:'Объём производства',value:'730',unit:'ед.',plan:'800 ед.',pct:91,color:'yellow',trend:'up',trendTxt:'↑ +20 ед.',history:[640,660,680,710,730],inverted:false},
+      {name:'Производительность',value:'91',unit:'%',plan:'95%',pct:96,color:'green',trend:'flat',trendTxt:'→ 0%',history:[87,88,89,90,91],inverted:false},
+      {name:'Себестоимость ед.',value:'145',unit:'тыс. ₽',plan:'135 тыс.',pct:93,color:'yellow',trend:'down',trendTxt:'↑ +3 тыс.',history:[136,138,140,142,145],inverted:true},
+      {name:'Процент брака',value:'2.1',unit:'%',plan:'1.5%',pct:71,color:'red',trend:'flat',trendTxt:'→ 0%',history:[2.5,2.3,2.2,2.0,2.1],inverted:true},
+      {name:'Загрузка мощностей',value:'85',unit:'%',plan:'90%',pct:94,color:'green',trend:'up',trendTxt:'↑ +1%',history:[80,82,83,84,85],inverted:false},
+      {name:'Простои оборудования',value:'5.1',unit:'%',plan:'3.0%',pct:59,color:'red',trend:'flat',trendTxt:'↑ +0.3%',history:[5.5,5.3,5.0,4.8,5.1],inverted:true}
+    ],
+    quarter: [
+      {name:'Объём производства',value:'2180',unit:'ед.',plan:'2400 ед.',pct:91,color:'yellow',trend:'up',trendTxt:'↑ +1%',history:[1950,2010,2100,2150,2180],inverted:false},
+      {name:'Производительность',value:'93',unit:'%',plan:'95%',pct:98,color:'green',trend:'flat',trendTxt:'→ 0%',history:[88,90,91,92,93],inverted:false},
+      {name:'Себестоимость ед.',value:'142',unit:'тыс. ₽',plan:'135 тыс.',pct:95,color:'yellow',trend:'down',trendTxt:'↑ +2 тыс.',history:[135,137,139,141,142],inverted:true},
+      {name:'Процент брака',value:'1.8',unit:'%',plan:'1.5%',pct:83,color:'yellow',trend:'down',trendTxt:'↓ −0.1%',history:[2.4,2.2,2.0,1.9,1.8],inverted:true},
+      {name:'Загрузка мощностей',value:'87',unit:'%',plan:'90%',pct:97,color:'green',trend:'up',trendTxt:'↑ +1%',history:[82,84,85,86,87],inverted:false},
+      {name:'Простои оборудования',value:'4.2',unit:'%',plan:'3.0%',pct:71,color:'red',trend:'down',trendTxt:'↓ −0.3%',history:[5.8,5.2,4.8,4.5,4.2],inverted:true}
+    ],
+    year: [
+      {name:'Объём производства',value:'8700',unit:'ед.',plan:'9600 ед.',pct:91,color:'yellow',trend:'up',trendTxt:'↑ прогноз',history:[7200,7600,8100,8500,8700],inverted:false},
+      {name:'Производительность',value:'93',unit:'%',plan:'96%',pct:97,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[82,85,88,91,93],inverted:false},
+      {name:'Себестоимость ед.',value:'142',unit:'тыс. ₽',plan:'124 тыс.',pct:87,color:'yellow',trend:'flat',trendTxt:'↑ риск',history:[148,145,141,139,142],inverted:true},
+      {name:'Процент брака',value:'1.8',unit:'%',plan:'1.0%',pct:56,color:'yellow',trend:'down',trendTxt:'↓ прогноз',history:[3.8,3.1,2.5,2.0,1.8],inverted:true},
+      {name:'Загрузка мощностей',value:'87',unit:'%',plan:'92%',pct:95,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[75,78,82,85,87],inverted:false},
+      {name:'Простои оборудования',value:'4.2',unit:'%',plan:'2.5%',pct:60,color:'red',trend:'down',trendTxt:'↓ прогноз',history:[7.2,6.5,5.8,5.0,4.2],inverted:true}
+    ]
+  },
+  finance: {
+    month: [
+      {name:'EBITDA',value:'17.9',unit:'%',plan:'21%',pct:85,color:'yellow',trend:'flat',trendTxt:'→ 0%',history:[19.0,18.8,18.2,18.0,17.9],inverted:false},
+      {name:'Рентабельность',value:'11.8',unit:'%',plan:'14%',pct:84,color:'yellow',trend:'down',trendTxt:'↓ −0.4%',history:[13.2,12.8,12.5,12.2,11.8],inverted:false},
+      {name:'Операц. расходы',value:'1.40',unit:'млрд ₽',plan:'1.25 млрд',pct:89,color:'yellow',trend:'down',trendTxt:'↑ +3%',history:[1.2,1.25,1.30,1.35,1.40],inverted:true},
+      {name:'Дебиторская задолженность',value:'890',unit:'млн ₽',plan:'≤800 млн',pct:90,color:'yellow',trend:'down',trendTxt:'↑ +5%',history:[760,790,820,855,890],inverted:true},
+      {name:'Исполнение CAPEX',value:'89',unit:'%',plan:'95%',pct:94,color:'green',trend:'up',trendTxt:'↑ +2%',history:[82,84,86,87,89],inverted:false},
+      {name:'Кассовый разрыв',value:'0',unit:'дней',plan:'≤5 дней',pct:100,color:'green',trend:'flat',trendTxt:'→ 0',history:[1,1,0,0,0],inverted:true}
+    ],
+    quarter: [
+      {name:'EBITDA',value:'18.4',unit:'%',plan:'21%',pct:88,color:'yellow',trend:'flat',trendTxt:'→ 0%',history:[19.0,18.8,18.2,18.5,18.4],inverted:false},
+      {name:'Рентабельность',value:'12.3',unit:'%',plan:'14%',pct:88,color:'yellow',trend:'down',trendTxt:'↓ −0.2%',history:[13.5,13.2,12.8,12.5,12.3],inverted:false},
+      {name:'Операц. расходы',value:'4.1',unit:'млрд ₽',plan:'3.8 млрд',pct:93,color:'yellow',trend:'down',trendTxt:'↑ +8%',history:[3.6,3.7,3.8,3.95,4.1],inverted:true},
+      {name:'Дебиторская задолженность',value:'890',unit:'млн ₽',plan:'≤800 млн',pct:90,color:'yellow',trend:'down',trendTxt:'↑ +5%',history:[750,780,810,850,890],inverted:true},
+      {name:'Исполнение CAPEX',value:'87',unit:'%',plan:'95%',pct:92,color:'green',trend:'up',trendTxt:'↑ +1%',history:[80,82,84,86,87],inverted:false},
+      {name:'Кассовый разрыв',value:'0',unit:'дней',plan:'≤5 дней',pct:100,color:'green',trend:'flat',trendTxt:'→ 0',history:[2,1,0,0,0],inverted:true}
+    ],
+    year: [
+      {name:'EBITDA',value:'18.5',unit:'%',plan:'21%',pct:88,color:'yellow',trend:'flat',trendTxt:'→ прогноз',history:[20.1,19.8,19.2,18.8,18.5],inverted:false},
+      {name:'Рентабельность',value:'12.3',unit:'%',plan:'14%',pct:88,color:'yellow',trend:'down',trendTxt:'↓ прогноз',history:[14.2,13.8,13.2,12.8,12.3],inverted:false},
+      {name:'Операц. расходы',value:'16.5',unit:'млрд ₽',plan:'15.2 млрд',pct:92,color:'yellow',trend:'down',trendTxt:'↑ прогноз',history:[11.2,12.8,13.5,14.9,16.5],inverted:true},
+      {name:'Дебиторская задолженность',value:'890',unit:'млн ₽',plan:'≤700 млн',pct:79,color:'yellow',trend:'down',trendTxt:'↑ риск',history:[650,680,720,790,890],inverted:true},
+      {name:'Исполнение CAPEX',value:'87',unit:'%',plan:'95%',pct:92,color:'green',trend:'up',trendTxt:'↑ прогноз',history:[79,81,83,85,87],inverted:false},
+      {name:'FCF',value:'2.1',unit:'млрд ₽',plan:'2.5 млрд',pct:84,color:'yellow',trend:'up',trendTxt:'↑ прогноз',history:[1.5,1.8,2.0,2.2,2.1],inverted:false}
+    ]
+  }
+};
+</script>
+
+<script>
+// ===================== GOALS DATA (FIX 3: OKR-format children names) =====================
+var GOALS = {
+  company: {
+    year: [
+      {id:'g1',name:'Вырасти по выручке на 20% — до 33.6 млрд ₽',owner:'Иванов А.Г.',pct:25,color:'green',target:'31.12.2026',
+       children:[
+         {id:'g1-1',name:'Нарастить выручку прямых продаж до 26 млрд ₽ к Q4',owner:'Лебедева В.С.',pct:92,color:'yellow',
+          krs:[{name:'Выручка Q1 ≥ 7.8 млрд ₽',fact:'7.2 млрд',plan:'7.8 млрд',pct:92,color:'yellow'},{name:'Новые клиенты ≥ 20 в Q1',fact:'12',plan:'20',pct:60,color:'red'}]},
+         {id:'g1-2',name:'Масштабировать партнёрский канал до 200 активных партнёров',owner:'Орлов К.Д.',pct:30,color:'yellow',
+          krs:[{name:'Новые партнёры ≥ 15 за год',fact:'4',plan:'15',pct:27,color:'red'},{name:'Доля партнёрских продаж ≥ 18%',fact:'11%',plan:'18%',pct:61,color:'yellow'}]}
+       ]},
+      {id:'g2',name:'Снизить OPEX до 52% выручки',owner:'Смирнова Е.А.',pct:55,color:'yellow',target:'31.12.2026',
+       children:[
+         {id:'g2-1',name:'Оптимизировать логистические издержки на 15% к Q3',owner:'Орлов Д.К.',pct:78,color:'green',
+          krs:[{name:'Логистика / выручка ≤ 8%',fact:'9.2%',plan:'8%',pct:87,color:'yellow'},{name:'Время доставки: −15%',fact:'−11%',plan:'−15%',pct:73,color:'yellow'}]},
+         {id:'g2-2',name:'Автоматизировать 30% повторяющихся операций к Q4',owner:'Козлов М.И.',pct:40,color:'yellow',
+          krs:[{name:'Доля ручного труда ≤ 35%',fact:'48%',plan:'35%',pct:73,color:'yellow'},{name:'MES-система введена в эксплуатацию',fact:'0%',plan:'100%',pct:0,color:'red'}]}
+       ]},
+      {id:'g3',name:'Запустить производственную линию Б-7',owner:'Козлов М.И.',pct:40,color:'green',target:'01.09.2026',
+       children:[
+         {id:'g3-1',name:'Завершить проектирование и подписать документацию к Q1',owner:'Козлов М.И.',pct:100,color:'green',
+          krs:[{name:'Проектная документация подписана',fact:'100%',plan:'100%',pct:100,color:'green'}]},
+         {id:'g3-2',name:'Смонтировать 22 единицы оборудования к Q2',owner:'Козлов М.И.',pct:55,color:'yellow',
+          krs:[{name:'Оборудование поставлено (ед.)',fact:'14',plan:'22',pct:64,color:'yellow'},{name:'Монтаж завершён (%)',fact:'55%',plan:'100%',pct:55,color:'yellow'}]}
+       ]},
+      {id:'g4',name:'NPS клиентов > 70 баллов',owner:'Новикова К.Д.',pct:97,color:'green',target:'31.12.2026',
+       children:[
+         {id:'g4-1',name:'Довести NPS до 70 баллов и индекс удержания до 92% к Q4',owner:'Новикова К.Д.',pct:97,color:'green',
+          krs:[{name:'NPS ≥ 70 баллов',fact:'68',plan:'70',pct:97,color:'green'},{name:'Индекс удержания ≥ 92%',fact:'94%',plan:'92%',pct:100,color:'green'}]}
+       ]},
+      {id:'g5',name:'Снизить текучесть персонала до 6%',owner:'Фёдорова О.П.',pct:55,color:'red',target:'31.12.2026',
+       children:[
+         {id:'g5-1',name:'Запустить программу удержания топ-100 сотрудников к Q2',owner:'Фёдорова О.П.',pct:45,color:'red',
+          krs:[{name:'Текучесть ≤ 6% (↓ обратная метрика)',fact:'7.8%',plan:'6%',pct:77,color:'red'},{name:'Охват программой удержания',fact:'42%',plan:'80%',pct:53,color:'red'}]},
+         {id:'g5-2',name:'Повысить индекс вовлечённости (eNPS) до 45 баллов',owner:'Фёдорова О.П.',pct:70,color:'yellow',
+          krs:[{name:'Система грейдов запущена',fact:'70%',plan:'100%',pct:70,color:'yellow'},{name:'Удовлетворённость ≥ 4.0 (из 5)',fact:'3.4',plan:'4.0',pct:85,color:'yellow'}]}
+       ]}
+    ],
+    quarter: [
+      {id:'q1',name:'Выполнить план выручки Q1: ≥ 7.8 млрд ₽',owner:'Лебедева В.С.',pct:92,color:'yellow',target:'31.03.2026',
+       children:[
+         {id:'q1-1',name:'Закрыть сделки B2B на 5.2 млрд ₽ к 31.03.2026',owner:'Петров С.В.',pct:95,color:'green',krs:[{name:'Объём B2B продаж ≥ 5.2 млрд',fact:'4.95 млрд',plan:'5.2 млрд',pct:95,color:'green'}]},
+         {id:'q1-2',name:'Закрыть сделки B2G на 2.6 млрд ₽ к 31.03.2026',owner:'Сидоров А.П.',pct:84,color:'yellow',krs:[{name:'Объём B2G продаж ≥ 2.6 млрд',fact:'2.18 млрд',plan:'2.6 млрд',pct:84,color:'yellow'}]}
+       ]},
+      {id:'q2',name:'Завершить аудит ИТ-инфраструктуры',owner:'Захаров А.Л.',pct:75,color:'green',target:'15.03.2026',
+       children:[
+         {id:'q2-1',name:'Актуализировать реестр всех систем к 28.02.2026',owner:'Захаров А.Л.',pct:100,color:'green',krs:[{name:'Реестр систем актуализирован',fact:'100%',plan:'100%',pct:100,color:'green'}]},
+         {id:'q2-2',name:'Завершить тест на проникновение к 15.03.2026',owner:'Захаров А.Л.',pct:60,color:'yellow',krs:[{name:'Тест на проникновение завершён',fact:'60%',plan:'100%',pct:60,color:'yellow'}]}
+       ]},
+      {id:'q3',name:'Пролонгировать 80+ ключевых контрактов',owner:'Лебедева В.С.',pct:64,color:'yellow',target:'31.03.2026',
+       children:[
+         {id:'q3-1',name:'Пролонгировать 60 контрактов B2B к 31.03.2026',owner:'Петров С.В.',pct:70,color:'yellow',krs:[{name:'Пролонгировано B2B-контрактов',fact:'42',plan:'60',pct:70,color:'yellow'}]},
+         {id:'q3-2',name:'Пролонгировать 20 контрактов B2G к 31.03.2026',owner:'Сидоров А.П.',pct:45,color:'red',krs:[{name:'Пролонгировано B2G-контрактов',fact:'9',plan:'20',pct:45,color:'red'}]}
+       ]},
+      {id:'q4',name:'Закрыть 25 открытых вакансий',owner:'Фёдорова О.П.',pct:48,color:'red',target:'31.03.2026',
+       children:[
+         {id:'q4-1',name:'Закрыть 12 вакансий в производстве к 31.03.2026',owner:'Фёдорова О.П.',pct:42,color:'red',krs:[{name:'Закрыто вакансий производство',fact:'5',plan:'12',pct:42,color:'red'}]},
+         {id:'q4-2',name:'Закрыть 8 коммерческих вакансий к 31.03.2026',owner:'Фёдорова О.П.',pct:63,color:'yellow',krs:[{name:'Закрыто коммерческих вакансий',fact:'5',plan:'8',pct:63,color:'yellow'}]}
+       ]}
+    ]
+  },
+  commercial: {
+    year: [
+      {id:'cg1',name:'Рост объёма продаж на 20%',owner:'Лебедева В.С.',pct:25,color:'green',target:'31.12.2026',
+       children:[
+         {id:'cg1-1',name:'Выполнить план по новым сделкам: 240 за год',owner:'Петров С.В.',pct:92,color:'yellow',
+          krs:[{name:'Выручка ≥ 31.2 млрд (прогноз)',fact:'29.4 млрд',plan:'31.2 млрд',pct:94,color:'yellow'}]}
+       ]},
+      {id:'cg2',name:'Привлечь 60 новых клиентов',owner:'Петров С.В.',pct:20,color:'yellow',target:'31.12.2026',
+       children:[
+         {id:'cg2-1',name:'Сгенерировать 20 новых клиентов через входящий канал',owner:'Новикова К.Д.',pct:15,color:'red',
+          krs:[{name:'Новые клиенты через входящий канал',fact:'3',plan:'20',pct:15,color:'red'}]},
+         {id:'cg2-2',name:'Подключить 80 новых партнёров к реселлерской программе',owner:'Орлов К.Д.',pct:30,color:'yellow',
+          krs:[{name:'Новые клиенты через партнёров',fact:'9',plan:'40',pct:23,color:'red'}]}
+       ]},
+      {id:'cg3',name:'NPS ≥ 70 баллов',owner:'Новикова К.Д.',pct:97,color:'green',target:'31.12.2026',
+       children:[
+         {id:'cg3-1',name:'Довести NPS до 70 баллов через улучшение клиентского сервиса',owner:'Новикова К.Д.',pct:97,color:'green',
+          krs:[{name:'NPS ≥ 70 баллов',fact:'68',plan:'70',pct:97,color:'green'}]}
+       ]},
+      {id:'cg4',name:'Выход в 3 новых региона',owner:'Орлов К.Д.',pct:67,color:'yellow',target:'31.12.2026',
+       children:[
+         {id:'cg4-1',name:'Получить первые продажи в Казахстане к Q2',owner:'Орлов К.Д.',pct:72,color:'green',
+          krs:[{name:'Первые продажи в Казахстане',fact:'72%',plan:'100%',pct:72,color:'green'}]},
+         {id:'cg4-2',name:'Запустить продажи в Узбекистане к Q3',owner:'Орлов К.Д.',pct:55,color:'yellow',
+          krs:[{name:'Зарегистрировано юрлицо',fact:'100%',plan:'100%',pct:100,color:'green'},{name:'Первые продажи',fact:'0%',plan:'100%',pct:0,color:'red'}]}
+       ]}
+    ],
+    quarter: [
+      {id:'cq1',name:'Выполнить план продаж Q1: 7.8 млрд ₽',owner:'Лебедева В.С.',pct:92,color:'yellow',target:'31.03.2026',
+       children:[
+         {id:'cq1-1',name:'Закрыть B2B-сделки на 5.2 млрд ₽ к 31.03.2026',owner:'Петров С.В.',pct:95,color:'green',
+          krs:[{name:'B2B ≥ 5.2 млрд',fact:'4.95 млрд',plan:'5.2 млрд',pct:95,color:'green'}]},
+         {id:'cq1-2',name:'Закрыть B2G-сделки на 2.6 млрд ₽ к 31.03.2026',owner:'Сидоров А.П.',pct:84,color:'yellow',
+          krs:[{name:'B2G ≥ 2.6 млрд',fact:'2.18 млрд',plan:'2.6 млрд',pct:84,color:'yellow'}]}
+       ]},
+      {id:'cq2',name:'Пролонгировать 80 ключевых контрактов',owner:'Лебедева В.С.',pct:64,color:'yellow',target:'31.03.2026',
+       children:[
+         {id:'cq2-1',name:'Пролонгировать 23 крупных контракта (>50 млн) к 31.03.2026',owner:'Петров С.В.',pct:78,color:'yellow',
+          krs:[{name:'Пролонгировано крупных',fact:'18',plan:'23',pct:78,color:'yellow'}]},
+         {id:'cq2-2',name:'Пролонгировать 57 средних контрактов к 31.03.2026',owner:'Лебедева В.С.',pct:58,color:'yellow',
+          krs:[{name:'Пролонгировано средних',fact:'33',plan:'57',pct:58,color:'yellow'}]}
+       ]},
+      {id:'cq3',name:'Запустить CRM 2.0 в отделе B2B',owner:'Петров С.В.',pct:20,color:'red',target:'31.03.2026',
+       children:[
+         {id:'cq3-1',name:'Обучить 18 менеджеров работе в CRM к 31.03.2026',owner:'Петров С.В.',pct:0,color:'red',
+          krs:[{name:'Менеджеры обучены работе в CRM',fact:'0',plan:'18',pct:0,color:'red'}]},
+         {id:'cq3-2',name:'Перенести 100% клиентской базы в CRM к 31.03.2026',owner:'Захаров А.Л.',pct:40,color:'yellow',
+          krs:[{name:'Клиентская база перенесена',fact:'40%',plan:'100%',pct:40,color:'yellow'}]}
+       ]}
+    ]
+  },
+  production: {
+    year: [
+      {id:'pg1',name:'Запустить производственную линию Б-7',owner:'Козлов М.И.',pct:40,color:'green',target:'01.09.2026',
+       children:[
+         {id:'pg1-1',name:'Увеличить объём выпуска до 85 000 единиц в год',owner:'Козлов М.И.',pct:100,color:'green',
+          krs:[{name:'Документация подписана',fact:'100%',plan:'100%',pct:100,color:'green'}]},
+         {id:'pg1-2',name:'Смонтировать 22 ед. оборудования Б-7 к Q2',owner:'Козлов М.И.',pct:55,color:'yellow',
+          krs:[{name:'Оборудование поставлено (ед.)',fact:'14',plan:'22',pct:64,color:'yellow'},{name:'Монтаж завершён',fact:'55%',plan:'100%',pct:55,color:'yellow'}]}
+       ]},
+      {id:'pg2',name:'Снизить себестоимость единицы на 8%',owner:'Козлов М.И.',pct:25,color:'red',target:'31.12.2026',
+       children:[
+         {id:'pg2-1',name:'Снизить уровень брака ниже 0.8% к Q3',owner:'Козлов М.И.',pct:52,color:'yellow',
+          krs:[{name:'Себестоимость ≤ 124 тыс. (↓ обратная)',fact:'142 тыс.',plan:'124 тыс.',pct:87,color:'yellow'},{name:'MES-система запущена',fact:'0%',plan:'100%',pct:0,color:'red'}]},
+         {id:'pg2-2',name:'Сократить брак на производственных линиях до 1%',owner:'Козлов М.И.',pct:40,color:'yellow',
+          krs:[{name:'Брак ≤ 1% (↓ обратная)',fact:'1.8%',plan:'1.0%',pct:56,color:'yellow'}]}
+       ]},
+      {id:'pg3',name:'Снизить процент брака до 1%',owner:'Козлов М.И.',pct:55,color:'yellow',target:'31.12.2026',
+       children:[
+         {id:'pg3-1',name:'Снизить брак по вине сырья до 0.5% к Q2',owner:'Козлов М.И.',pct:70,color:'yellow',
+          krs:[{name:'Брак по вине сырья ≤ 0.5%',fact:'0.9%',plan:'0.5%',pct:56,color:'yellow'}]},
+         {id:'pg3-2',name:'Снизить брак на производственных операциях до 0.5% к Q3',owner:'Козлов М.И.',pct:45,color:'yellow',
+          krs:[{name:'Брак на линии ≤ 0.5%',fact:'0.9%',plan:'0.5%',pct:56,color:'yellow'}]}
+       ]}
+    ],
+    quarter: [
+      {id:'pq1',name:'Выполнить план производства Q1: 2400 ед.',owner:'Козлов М.И.',pct:91,color:'yellow',target:'31.03.2026',
+       children:[
+         {id:'pq1-1',name:'Выпустить 960 ед. в Цехе №1 к 31.03.2026',owner:'Козлов М.И.',pct:94,color:'green',
+          krs:[{name:'Объём цех №1 ≥ 960 ед.',fact:'902',plan:'960',pct:94,color:'green'}]},
+         {id:'pq1-2',name:'Выпустить 720 ед. в Цехе №2 к 31.03.2026',owner:'Козлов М.И.',pct:88,color:'yellow',
+          krs:[{name:'Объём цех №2 ≥ 720 ед.',fact:'634',plan:'720',pct:88,color:'yellow'}]}
+       ]},
+      {id:'pq2',name:'Завершить монтаж Б-7 (Фаза 2)',owner:'Козлов М.И.',pct:55,color:'yellow',target:'31.03.2026',
+       children:[
+         {id:'pq2-1',name:'Смонтировать 10 базовых секций к 31.03.2026',owner:'Козлов М.И.',pct:80,color:'yellow',
+          krs:[{name:'Секции смонтированы',fact:'8',plan:'10',pct:80,color:'yellow'}]},
+         {id:'pq2-2',name:'Подключить 12 электрических и автоматических узлов к 31.03.2026',owner:'Козлов М.И.',pct:30,color:'red',
+          krs:[{name:'Подключены узлы',fact:'3',plan:'12',pct:25,color:'red'}]}
+       ]},
+      {id:'pq3',name:'Получить сертификат ISO 9001:2015',owner:'Козлов М.И.',pct:80,color:'green',target:'15.04.2026',
+       children:[
+         {id:'pq3-1',name:'Подготовить полный пакет документации к 01.03.2026',owner:'Козлов М.И.',pct:100,color:'green',
+          krs:[{name:'Пакет документов подготовлен',fact:'100%',plan:'100%',pct:100,color:'green'}]},
+         {id:'pq3-2',name:'Пройти оба этапа аудита к 15.04.2026',owner:'Козлов М.И.',pct:60,color:'yellow',
+          krs:[{name:'Аудит 1-й ступени пройден',fact:'100%',plan:'100%',pct:100,color:'green'},{name:'Аудит 2-й ступени',fact:'0%',plan:'100%',pct:0,color:'red'}]}
+       ]}
+    ]
+  },
+  finance: {
+    year: [
+      {id:'fg1',name:'EBITDA ≥ 21% по итогам года',owner:'Смирнова Е.А.',pct:88,color:'yellow',target:'31.12.2026',
+       children:[
+         {id:'fg1-1',name:'Довести EBITDA до 18% от выручки к Q4',owner:'Смирнова Е.А.',pct:55,color:'yellow',
+          krs:[{name:'EBITDA ≥ 21% (прогноз 18.5%)',fact:'18.5%',plan:'21%',pct:88,color:'yellow'}]},
+         {id:'fg1-2',name:'Обеспечить рост выручки до 28.8 млрд ₽ к Q4',owner:'Лебедева В.С.',pct:94,color:'yellow',
+          krs:[{name:'Выручка ≥ 28.8 млрд',fact:'29.4 млрд',plan:'28.8 млрд',pct:102,color:'green'}]}
+       ]},
+      {id:'fg2',name:'Снизить OPEX до 52% выручки',owner:'Смирнова Е.А.',pct:55,color:'yellow',target:'31.12.2026',
+       children:[
+         {id:'fg2-1',name:'Удержать OPEX в рамках бюджета ±2% по всем подразделениям',owner:'Орлов Д.К.',pct:78,color:'green',
+          krs:[{name:'Экономия на логистике ≥ 400 млн',fact:'312 млн',plan:'400 млн',pct:78,color:'yellow'}]},
+         {id:'fg2-2',name:'Снизить административные расходы до 5% выручки к Q4',owner:'Смирнова Е.А.',pct:40,color:'yellow',
+          krs:[{name:'Адм. расходы / выручка ≤ 5%',fact:'6.2%',plan:'5%',pct:81,color:'yellow'}]}
+       ]},
+      {id:'fg3',name:'Рентабельность по ЧП ≥ 14%',owner:'Смирнова Е.А.',pct:88,color:'yellow',target:'31.12.2026',
+       children:[
+         {id:'fg3-1',name:'Снизить эффективную налоговую ставку до 18% к Q4',owner:'Смирнова Е.А.',pct:70,color:'yellow',
+          krs:[{name:'Эффективная ставка ≤ 18%',fact:'19.2%',plan:'18%',pct:94,color:'green'}]}
+       ]}
+    ],
+    quarter: [
+      {id:'fq1',name:'Закрыть управленческую отчётность Q1',owner:'Смирнова Е.А.',pct:100,color:'green',target:'05.03.2026',
+       children:[
+         {id:'fq1-1',name:'Собрать данные от всех 6 СЕ к 05.03.2026',owner:'Смирнова Е.А.',pct:100,color:'green',
+          krs:[{name:'Данные получены от всех СЕ',fact:'6/6',plan:'6/6',pct:100,color:'green'}]}
+       ]},
+      {id:'fq2',name:'Согласовать бюджет Q2 2026',owner:'Смирнова Е.А.',pct:80,color:'yellow',target:'28.02.2026',
+       children:[
+         {id:'fq2-1',name:'Получить заявки от всех 6 подразделений к 20.02.2026',owner:'Смирнова Е.А.',pct:100,color:'green',
+          krs:[{name:'Заявки получены',fact:'6/6',plan:'6/6',pct:100,color:'green'}]},
+         {id:'fq2-2',name:'Согласовать и подписать бюджет с CEO к 28.02.2026',owner:'Смирнова Е.А.',pct:60,color:'yellow',
+          krs:[{name:'Бюджет согласован и подписан',fact:'60%',plan:'100%',pct:60,color:'yellow'}]}
+       ]},
+      {id:'fq3',name:'Сократить дебиторку до 800 млн',owner:'Петрова Н.Г.',pct:60,color:'yellow',target:'31.03.2026',
+       children:[
+         {id:'fq3-1',name:'Снизить просроченную ДЗ ниже 200 млн к 31.03.2026',owner:'Петрова Н.Г.',pct:55,color:'yellow',
+          krs:[{name:'Просроченная ДЗ < 200 млн',fact:'340 млн',plan:'200 млн',pct:59,color:'yellow'}]}
+       ]}
+    ]
+  }
+};
+</script>
+
+<script>
+// ===================== PROJECTS DATA (FIX 4: projectsTotal added to PRESETS) =====================
+var PROJECTS = {
+  company: [
+    {name:'Внедрение CRM 2.0',goalLink:'Рост выручки на 20%',owner:'Петров С.В.',status:'red',label:'Отстаёт',pct:20,deadline:'30.06.2026',
+     milestones:[{name:'Анализ требований',done:true,date:'01.12.2025'},{name:'Проектирование',done:true,date:'01.02.2026'},{name:'Разработка модуля продаж',done:false,date:'01.04.2026'},{name:'Интеграция с ERP',done:false,date:'01.05.2026'},{name:'Обучение и запуск',done:false,date:'30.06.2026'}]},
+    {name:'HR-трансформация',goalLink:'Снизить текучесть до 6%',owner:'Фёдорова О.П.',status:'red',label:'Отстаёт',pct:35,deadline:'31.12.2026',
+     milestones:[{name:'Анализ причин текучести',done:true,date:'01.01.2026'},{name:'Программа удержания',done:false,date:'01.03.2026'},{name:'Пересмотр мотивации',done:false,date:'01.05.2026'},{name:'Оценка эффективности',done:false,date:'01.09.2026'}]},
+    {name:'Цифровизация производства',goalLink:'Снизить OPEX до 52%',owner:'Козлов М.И.',status:'yellow',label:'Под угрозой',pct:52,deadline:'30.09.2026',
+     milestones:[{name:'Аудит процессов',done:true,date:'01.11.2025'},{name:'Внедрение MES-системы',done:false,date:'01.04.2026'},{name:'Автоматизация ОТК',done:false,date:'01.07.2026'},{name:'Обучение персонала',done:false,date:'30.09.2026'}]},
+    {name:'Запуск линии Б-7',goalLink:'Запустить линию Б-7',owner:'Козлов М.И.',status:'green',label:'В плане',pct:40,deadline:'01.09.2026',
+     milestones:[{name:'Проектная документация',done:true,date:'01.12.2025'},{name:'Поставка оборудования',done:false,date:'01.03.2026'},{name:'Монтаж и наладка',done:false,date:'01.06.2026'},{name:'Пуско-наладка',done:false,date:'01.08.2026'},{name:'Запуск',done:false,date:'01.09.2026'}]},
+    {name:'Реструктуризация логистики',goalLink:'Снизить OPEX до 52%',owner:'Орлов Д.К.',status:'green',label:'В плане',pct:78,deadline:'30.04.2026',
+     milestones:[{name:'Картирование маршрутов',done:true,date:'01.10.2025'},{name:'Выбор подрядчика',done:true,date:'01.12.2025'},{name:'Оптимизация складов',done:true,date:'01.02.2026'},{name:'Внедрение WMS',done:false,date:'30.04.2026'}]},
+    {name:'ESG-программа 2026',goalLink:'—',owner:'Иванова М.Н.',status:'yellow',label:'Под угрозой',pct:30,deadline:'31.12.2026',
+     milestones:[{name:'Оценка углеродного следа',done:true,date:'01.02.2026'},{name:'Стратегия ESG',done:false,date:'01.04.2026'},{name:'Отчётность GRI',done:false,date:'01.07.2026'},{name:'Публикация отчёта',done:false,date:'31.12.2026'}]}
+  ],
+  commercial: [
+    {name:'Внедрение CRM 2.0',goalLink:'Рост продаж на 20%',owner:'Петров С.В.',status:'red',label:'Отстаёт',pct:20,deadline:'30.06.2026',
+     milestones:[{name:'Анализ требований',done:true,date:'01.12.2025'},{name:'Проектирование',done:true,date:'01.02.2026'},{name:'Разработка модуля',done:false,date:'01.04.2026'},{name:'Запуск',done:false,date:'30.06.2026'}]},
+    {name:'Программа лояльности',goalLink:'NPS ≥ 70 баллов',owner:'Новикова К.Д.',status:'yellow',label:'Под угрозой',pct:65,deadline:'30.09.2026',
+     milestones:[{name:'Исследование',done:true,date:'01.11.2025'},{name:'Разработка программы',done:false,date:'01.03.2026'},{name:'Пилот',done:false,date:'01.06.2026'},{name:'Полный запуск',done:false,date:'30.09.2026'}]},
+    {name:'Выход в Казахстан',goalLink:'Выход в 3 новых региона',owner:'Орлов К.Д.',status:'green',label:'В плане',pct:72,deadline:'30.06.2026',
+     milestones:[{name:'Анализ рынка',done:true,date:'01.10.2025'},{name:'Регистрация юрлица',done:true,date:'01.01.2026'},{name:'Подбор команды',done:false,date:'01.03.2026'},{name:'Первые продажи',done:false,date:'30.06.2026'}]}
+  ],
+  production: [
+    {name:'Цифровизация производства',goalLink:'Снизить себестоимость на 8%',owner:'Козлов М.И.',status:'yellow',label:'Под угрозой',pct:52,deadline:'30.09.2026',
+     milestones:[{name:'Аудит процессов',done:true,date:'01.11.2025'},{name:'Внедрение MES',done:false,date:'01.04.2026'},{name:'Автоматизация ОТК',done:false,date:'01.07.2026'},{name:'Обучение',done:false,date:'30.09.2026'}]},
+    {name:'Запуск линии Б-7',goalLink:'Запустить линию Б-7',owner:'Козлов М.И.',status:'green',label:'В плане',pct:40,deadline:'01.09.2026',
+     milestones:[{name:'Документация',done:true,date:'01.12.2025'},{name:'Поставка',done:false,date:'01.03.2026'},{name:'Монтаж',done:false,date:'01.06.2026'},{name:'Запуск',done:false,date:'01.09.2026'}]},
+    {name:'Модернизация станков ЧПУ',goalLink:'—',owner:'Козлов М.И.',status:'green',label:'В плане',pct:85,deadline:'28.02.2026',
+     milestones:[{name:'Техаудит',done:true,date:'01.10.2025'},{name:'Закупка',done:true,date:'01.12.2025'},{name:'Монтаж',done:true,date:'01.02.2026'},{name:'Ввод в эксплуатацию',done:false,date:'28.02.2026'}]}
+  ],
+  finance: [
+    {name:'Реструктуризация логистики',goalLink:'Снизить OPEX до 52%',owner:'Орлов Д.К.',status:'green',label:'В плане',pct:78,deadline:'30.04.2026',
+     milestones:[{name:'Картирование',done:true,date:'01.10.2025'},{name:'Подрядчик',done:true,date:'01.12.2025'},{name:'Склады',done:true,date:'01.02.2026'},{name:'WMS',done:false,date:'30.04.2026'}]},
+    {name:'ERP: модуль «Бюджетирование»',goalLink:'—',owner:'Захаров А.Л.',status:'yellow',label:'Под угрозой',pct:45,deadline:'30.06.2026',
+     milestones:[{name:'Анализ требований',done:true,date:'01.11.2025'},{name:'Настройка системы',done:false,date:'01.03.2026'},{name:'Тестирование',done:false,date:'01.05.2026'},{name:'Ввод в эксплуатацию',done:false,date:'30.06.2026'}]}
+  ]
+};
+
+// FIX 4: PRESETS object with projectsTotal (docs patched after DOCS is defined)
+var PRESETS = {
+  company:    {kpi: KPI.company,    projects: PROJECTS.company,    docs: null, projectsTotal: 47},
+  commercial: {kpi: KPI.commercial, projects: PROJECTS.commercial, docs: null, projectsTotal: 18},
+  production: {kpi: KPI.production, projects: PROJECTS.production, docs: null, projectsTotal: 23},
+  finance:    {kpi: KPI.finance,    projects: PROJECTS.finance,    docs: null, projectsTotal: 12}
+};
+
+// ===================== EMPLOYEES DATA =====================
+var EMPLOYEES = {
+  company:    {total:847,managers:42,vacancies:25,divisions:[{name:'Производство',count:380},{name:'Коммерческий',count:128},{name:'Логистика',count:110},{name:'ИТ',count:93},{name:'Финансы',count:74},{name:'HR',count:62}]},
+  commercial: {total:128,managers:8,vacancies:5,divisions:[{name:'B2B Продажи',count:52},{name:'B2G Продажи',count:31},{name:'Маркетинг',count:22},{name:'Тендеры',count:15},{name:'Поддержка',count:8}]},
+  production: {total:380,managers:24,vacancies:12,divisions:[{name:'Цех №1',count:142},{name:'Цех №2',count:98},{name:'Цех №3',count:71},{name:'ОТК',count:34},{name:'Технологический',count:22},{name:'Склад',count:13}]},
+  finance:    {total:74,managers:6,vacancies:3,divisions:[{name:'Бухгалтерия',count:28},{name:'Казначейство',count:18},{name:'Планово-экономический',count:16},{name:'Контроллинг',count:12}]}
+};
+
+// ===================== DOCUMENTS DATA =====================
+var DOCS = {
+  company: {
+    roleLabel:'CEO',
+    groups:[
+      {group:'Стратегические',items:[{name:'Стратегия компании 2026–2028',date:'Версия 2.1 · 15.01.2026',icon:'🗺️'},{name:'Материалы к заседанию СД №4',date:'04.03.2026 · Подготовить',icon:'📋'}]},
+      {group:'Управленческие',items:[{name:'Протокол СД №3 от 20.02.2026',date:'Утверждён 21.02.2026',icon:'📄'},{name:'Организационная схема',date:'Актуально · 01.02.2026',icon:'🏢'}]},
+      {group:'Аналитика',items:[{name:'KPI: Стратегия 2026 (Power BI)',date:'Данные в реальном времени',icon:'📊'},{name:'Управленческий отчёт Q1 2026',date:'Обновлён 20.02.2026',icon:'💰'}]}
+    ]
+  },
+  commercial: {
+    roleLabel:'CCO',
+    groups:[
+      {group:'Стратегические',items:[{name:'Коммерческая стратегия 2026',date:'Версия 1.3 · 10.01.2026',icon:'🗺️'}]},
+      {group:'Операционные',items:[{name:'Отчёт по продажам Q1 2026',date:'Обновлён 25.02.2026',icon:'📊'},{name:'Реестр ключевых контрактов',date:'Актуально · 20.02.2026',icon:'📋'}]},
+      {group:'Аналитика',items:[{name:'KPI Коммерческого блока (Power BI)',date:'Данные в реальном времени',icon:'📈'}]}
+    ]
+  },
+  production: {
+    roleLabel:'COO',
+    groups:[
+      {group:'Плановые',items:[{name:'Операционный план производства 2026',date:'Версия 1.4 · 15.01.2026',icon:'📋'},{name:'Технологические регламенты',date:'Актуально · 10.02.2026',icon:'📄'}]},
+      {group:'Аналитика',items:[{name:'Dashboard производства (Power BI)',date:'Данные в реальном времени',icon:'📊'},{name:'Реестр проектов производства',date:'Обновлён 01.02.2026',icon:'🚀'}]}
+    ]
+  },
+  finance: {
+    roleLabel:'CFO',
+    groups:[
+      {group:'Финансовые',items:[{name:'Управленческая отчётность Q1 2026',date:'Обновлён 20.02.2026',icon:'📊'},{name:'Бюджет на 2026 год',date:'Утверждён 15.01.2026',icon:'💰'},{name:'Аудиторское заключение 2025',date:'Получено 30.01.2026',icon:'✅'}]},
+      {group:'Стратегические',items:[{name:'МСФО-отчётность 2025',date:'Опубликована 31.01.2026',icon:'📋'}]},
+      {group:'Аналитика',items:[{name:'BI-дашборд финансов (Power BI)',date:'Данные в реальном времени',icon:'📈'}]}
+    ]
+  }
+};
+
+// Now fix PRESETS to use actual DOCS
+PRESETS.company.docs    = DOCS.company;
+PRESETS.commercial.docs = DOCS.commercial;
+PRESETS.production.docs = DOCS.production;
+PRESETS.finance.docs    = DOCS.finance;
+
+// Track expanded goals
+var expandedGoals = {};
+</script>
+
+<script>
+// ===================== SPARKLINE SVG =====================
+function makeSparkline(history, color) {
+  var w=60, h=24;
+  var mn = Math.min.apply(null,history), mx = Math.max.apply(null,history);
+  var rng = mx-mn || 1;
+  var pts = history.map(function(v,i){
+    var x = (i/(history.length-1))*(w-4)+2;
+    var y = h-2 - ((v-mn)/rng)*(h-4);
+    return x+','+y;
+  });
+  var col = color==='green'?'#16a34a':color==='yellow'?'#d97706':'#dc2626';
+  return '<svg width="'+w+'" height="'+h+'" class="kpi-sparkline"><polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+// ===================== RENDER KPI =====================
+function renderKPI() {
+  if (!settingsState.blocks.kpi) return;
+  var data = KPI[currentPreset][curPeriod];
+  var html = '';
+  data.forEach(function(k,i){
+    if (!settingsState.kpiVisible[i]) return;
+    var col = k.color;
+    var trendClass = k.inverted
+      ? (k.trend==='down'?'green':(k.trend==='up'?'red':''))
+      : (k.trend==='up'?'green':(k.trend==='down'?'red':''));
+    html += '<div class="kpi-card '+col+'" onclick="openKPIModal('+i+')" title="Подробнее">';
+    html += '<div class="kpi-name">'+k.name+'</div>';
+    if (k.inverted) html += '<span class="kpi-inverted-tag">↓ цель: снижать</span>';
+    html += '<div class="kpi-value">'+k.value+' <span class="kpi-unit">'+k.unit+'</span></div>';
+    html += '<div class="kpi-plan">план: '+k.plan+'</div>';
+    html += '<div class="kpi-footer">';
+    html += '<span class="kpi-pct '+col+'">'+k.pct+'%</span>';
+    html += '<span class="kpi-trend '+(trendClass||'')+'">'+k.trendTxt+'</span>';
+    html += '</div>';
+    html += makeSparkline(k.history, col);
+    html += '</div>';
+  });
+  document.getElementById('kpiGrid').innerHTML = html;
+}
+
+// Keep alias for backward compat
+function renderKPIs() { renderKPI(); }
+
+// ===================== RENDER GOALS =====================
+function renderGoalRow(g, level) {
+  var isExp = !!expandedGoals[g.id];
+  var html = '';
+  html += '<div class="goal-row level-'+level+'" id="goal-'+g.id+'">';
+  html += '<span class="goal-toggle'+(isExp?' open':'')+'" onclick="toggleGoal(\''+g.id+'\')">'+(g.children&&g.children.length?'▶':'')+'</span>';
+  html += '<span class="goal-dot '+g.color+'"></span>';
+  html += '<span class="goal-name" onclick="openGoalModal(\''+g.id+'\')" title="Открыть цель">'+g.name+'</span>';
+  html += '<span class="goal-owner">'+g.owner+'</span>';
+  html += '<span class="goal-date">'+(g.target||'')+'</span>';
+  html += '<span class="goal-pct '+g.color+'">'+g.pct+'%</span>';
+  html += '<div class="goal-bar"><div class="goal-bar-fill '+g.color+'" style="width:'+Math.min(g.pct,100)+'%"></div></div>';
+  html += '</div>';
+  if (g.children && g.children.length) {
+    html += '<div id="children-'+g.id+'" style="display:'+(isExp?'block':'none')+'">';
+    g.children.forEach(function(ch){
+      html += renderGoalRow(ch, 2);
+      if (ch.krs && ch.krs.length && isExp) {
+        var chExp = !!expandedGoals[ch.id];
+        if (chExp) {
+          ch.krs.forEach(function(kr){
+            html += '<div class="goal-kr">';
+            html += '<span class="kr-icon">📌</span>';
+            html += '<span class="kr-name">'+kr.name+'</span>';
+            html += '<span class="kr-fact">Факт: '+kr.fact+'</span>';
+            html += '<span class="kr-plan">/ '+kr.plan+'</span>';
+            html += '<span class="kr-pct '+kr.color+'">'+kr.pct+'%</span>';
+            html += '<div class="kr-bar"><div style="width:'+Math.min(kr.pct,100)+'%;height:100%;background:var(--'+kr.color+');border-radius:2px"></div></div>';
+            html += '</div>';
+          });
+        }
+      }
+    });
+    html += '</div>';
+  }
+  return html;
+}
+
+function renderGoals() {
+  if (!settingsState.blocks.goals) return;
+  var preset = currentPreset;
+  var tab = curGoalTab;
+  var data = GOALS[preset] && GOALS[preset][tab];
+  if (!data) {
+    document.getElementById('goalsBody').innerHTML = '<div style="padding:16px;color:var(--text-3);font-size:13px">Нет данных для выбранного раздела</div>';
+    return;
+  }
+  var html = '';
+  data.forEach(function(g){ html += renderGoalRow(g, 1); });
+  document.getElementById('goalsBody').innerHTML = html;
+}
+
+function toggleGoal(id) {
+  expandedGoals[id] = !expandedGoals[id];
+  renderGoals();
+}
+
+// ===================== RENDER EMPLOYEES =====================
+function renderEmployees() {
+  if (!settingsState.blocks.employees) return;
+  var d = EMPLOYEES[currentPreset];
+  var maxCount = Math.max.apply(null, d.divisions.map(function(x){return x.count;}));
+  var html = '<div class="emp-stats">';
+  html += '<div class="emp-stat"><div class="val">'+d.total+'</div><div class="lbl">Всего</div></div>';
+  html += '<div class="emp-stat"><div class="val">'+d.managers+'</div><div class="lbl">Менеджеров</div></div>';
+  html += '<div class="emp-stat"><div class="val red">'+d.vacancies+'</div><div class="lbl">Вакансий</div></div>';
+  html += '</div><div class="emp-divs">';
+  d.divisions.forEach(function(div){
+    var pct = Math.round(div.count/maxCount*100);
+    html += '<div class="emp-div-row">';
+    html += '<span class="emp-div-name" title="'+div.name+'">'+div.name+'</span>';
+    html += '<div class="emp-div-bar"><div class="emp-div-fill" style="width:'+pct+'%"></div></div>';
+    html += '<span class="emp-div-cnt">'+div.count+'</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('employeesBody').innerHTML = html;
+}
+
+// ===================== RENDER PROJECTS (FIX 4) =====================
+function renderProjects() {
+  if (!settingsState.blocks.projects) return;
+  var preset = PRESETS[currentPreset];
+  var projects = preset.projects.slice(); // copy
+
+  // Sort: red first, then yellow, then green
+  var statusOrder = {red: 0, yellow: 1, green: 2};
+  projects.sort(function(a,b){ return statusOrder[a.status] - statusOrder[b.status]; });
+
+  var total = preset.projectsTotal || projects.length;
+  var shown = projects.slice(0, 5);
+  var criticalCount = shown.filter(function(p){ return p.status === 'red' || p.status === 'yellow'; }).length;
+
+  // Update subtitle
+  var subtitleEl = document.getElementById('projectsSubtitle');
+  if (subtitleEl) {
+    subtitleEl.textContent = 'Показаны ' + shown.length + ' критичных из ' + total + ' · Настройка в Администрировании';
+  }
+
+  var html = '';
+  shown.forEach(function(p, i){
+    // find original index for modal
+    var origIdx = PROJECTS[currentPreset].indexOf(p);
+    if (origIdx < 0) origIdx = i;
+    html += '<tr onclick="openProjModal('+origIdx+')" style="cursor:pointer">';
+    html += '<td><div class="proj-name">'+p.name+'</div></td>';
+    html += '<td><span class="proj-owner">'+p.owner+'</span></td>';
+    html += '<td><span class="proj-goal">'+p.goalLink+'</span></td>';
+    html += '<td><div class="proj-progress-wrap"><div class="proj-bar"><div class="proj-bar-fill '+p.status+'" style="width:'+p.pct+'%"></div></div><span class="proj-pct">'+p.pct+'%</span></div></td>';
+    html += '<td style="font-size:12px;color:var(--text-2)">'+p.deadline+'</td>';
+    html += '<td><span class="status-badge '+p.status+'"><span class="status-dot"></span>'+p.label+'</span></td>';
+    html += '</tr>';
+  });
+  document.getElementById('projectsBody').innerHTML = html;
+}
+
+// ===================== RENDER DOCUMENTS (FIX 5: no docsRoleBadge) =====================
+function renderDocs() {
+  if (!settingsState.blocks.docs) return;
+  var d = DOCS[currentPreset];
+  var groups = d.groups;
+  // Distribute into 3 columns
+  var cols = [[],[],[]];
+  groups.forEach(function(g,i){ cols[i%3].push(g); });
+  var html = '';
+  for (var c=0; c<3; c++) {
+    html += '<div class="docs-col">';
+    cols[c].forEach(function(grp){
+      html += '<div class="docs-group-title">'+grp.group+'</div>';
+      grp.items.forEach(function(item){
+        html += '<div class="doc-item" onclick="showToast(\'Переход в Directum → '+item.name+'\')">';
+        html += '<span class="doc-icon">'+item.icon+'</span>';
+        html += '<div class="doc-info"><div class="doc-name" title="'+item.name+'">'+item.name+'</div><div class="doc-date">'+item.date+'</div></div>';
+        html += '<span class="doc-arrow">→</span>';
+        html += '</div>';
+      });
+    });
+    html += '</div>';
+  }
+  document.getElementById('docsBody').innerHTML = html;
+}
+
+// ===================== RENDER ALL =====================
+function renderAll() {
+  renderKPI();
+  renderGoals();
+  renderEmployees();
+  renderProjects();
+  renderDocs();
+  applyBlockVisibility();
+}
+
+function applyBlockVisibility() {
+  var map = {kpi:'section-kpi',goals:'section-goals',projects:'section-projects',employees:'section-employees',docs:'section-docs'};
+  Object.keys(map).forEach(function(k){
+    var el = document.getElementById(map[k]);
+    if (el) el.style.display = settingsState.blocks[k] ? '' : 'none';
+  });
+  var midRow = document.querySelector('.middle-row');
+  if (midRow) {
+    var bothHidden = !settingsState.blocks.goals && !settingsState.blocks.employees;
+    midRow.style.display = bothHidden ? 'none' : '';
+  }
+}
+</script>
+
+<script>
+// ===================== PERIOD / TAB SWITCHING =====================
+function setPeriod(p) {
+  curPeriod = p;
+  document.querySelectorAll('.period-tab[data-period]').forEach(function(el){
+    el.classList.toggle('active', el.dataset.period===p);
+  });
+  settingsState.kpiVisible = [true,true,true,true,true,true];
+  renderKPI();
+}
+
+function setGoalTab(t) {
+  curGoalTab = t;
+  expandedGoals = {};
+  document.querySelectorAll('.period-tab[data-gtab]').forEach(function(el){
+    el.classList.toggle('active', el.dataset.gtab===t);
+  });
+  renderGoals();
+}
+
+// ===================== SE DROPDOWN =====================
+function toggleSEDropdown() {
+  document.getElementById('seDropdown').classList.toggle('open');
+}
+
+function selectSE(preset, label) {
+  currentPreset = preset;
+  currentSELabel = label;
+  document.getElementById('seBtnLabel').textContent = '🏢 '+label+' ▾';
+  var info = PRESET_INFO[preset];
+  document.getElementById('headerAvatar').textContent = info.initials;
+  document.getElementById('headerName').textContent = info.name;
+  document.getElementById('headerRole').textContent = info.role;
+  document.querySelectorAll('.se-item').forEach(function(el){
+    el.classList.remove('active');
+  });
+  event.currentTarget.classList.add('active');
+  document.getElementById('seDropdown').classList.remove('open');
+  expandedGoals = {};
+  settingsState.kpiVisible = [true,true,true,true,true,true];
+  renderAll();
+}
+
+document.addEventListener('click', function(e){
+  var wrap = document.querySelector('.se-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('seDropdown').classList.remove('open');
+  }
+});
+
+// ===================== TOAST =====================
+function showToast(message) {
+  var t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = message;
+  document.body.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 3000);
+}
+
+// ===================== MODAL HELPERS =====================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.addEventListener('keydown', function(e){
+  if (e.key==='Escape') {
+    ['kpiModal','goalModal','projModal'].forEach(closeModal);
+    closeAdminPanel();
+  }
+});
+
+// ===================== MODAL: KPI =====================
+function makeLineChart(history, labels, color) {
+  var w=540, h=120, pad=30;
+  var mn=Math.min.apply(null,history), mx=Math.max.apply(null,history);
+  var rng=mx-mn||1;
+  var col=color==='green'?'#16a34a':color==='yellow'?'#d97706':'#dc2626';
+  var pts=history.map(function(v,i){
+    var x=pad+(i/(history.length-1))*(w-pad*2);
+    var y=pad+((mx-v)/rng)*(h-pad*2);
+    return {x:x,y:y,v:v};
+  });
+  var path=pts.map(function(p,i){return (i?'L':'M')+p.x+' '+p.y;}).join(' ');
+  var fillPath=path+' L'+pts[pts.length-1].x+' '+(h-10)+' L'+pts[0].x+' '+(h-10)+' Z';
+  var svg='<svg width="100%" viewBox="0 0 '+w+' '+h+'" style="overflow:visible">';
+  svg+='<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity="0.15"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>';
+  svg+='<path d="'+fillPath+'" fill="url(#cg)"/>';
+  svg+='<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+  pts.forEach(function(p){
+    svg+='<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+  });
+  pts.forEach(function(p,i){
+    svg+='<text x="'+p.x+'" y="'+(h-2)+'" text-anchor="middle" font-size="10" fill="#9ca3af">'+labels[i]+'</text>';
+    svg+='<text x="'+p.x+'" y="'+(p.y-8)+'" text-anchor="middle" font-size="10" fill="'+col+'" font-weight="600">'+p.v+'</text>';
+  });
+  svg+='</svg>';
+  return svg;
+}
+
+function openKPIModal(idx) {
+  var k = KPI[currentPreset][curPeriod][idx];
+  document.getElementById('kpiModalTitle').textContent = k.name;
+  var col = k.color;
+  var labs = periodLabels[curPeriod];
+  var html = '';
+  if (k.inverted) {
+    html += '<div class="warn-box">⚠️ Обратная метрика: значение должно быть ≤ плана. Снижение = улучшение. Тренд ↓ = хорошо.</div>';
+  }
+  html += '<div class="modal-stats">';
+  html += '<div class="modal-stat"><div class="ms-label">Факт</div><div class="ms-value '+col+'">'+k.value+' '+k.unit+'</div></div>';
+  html += '<div class="modal-stat"><div class="ms-label">План</div><div class="ms-value">'+k.plan+'</div></div>';
+  html += '<div class="modal-stat"><div class="ms-label">Выполнение</div><div class="ms-value '+col+'">'+k.pct+'%</div></div>';
+  html += '</div>';
+  html += '<div class="modal-chart-title">Динамика показателя</div>';
+  html += '<div class="modal-chart">'+makeLineChart(k.history, labs, col)+'</div>';
+  html += '<div class="modal-section-title">Разбивка по периодам</div>';
+  var mn=Math.max.apply(null,k.history);
+  k.history.forEach(function(v,i){
+    var pct=Math.round(v/mn*100);
+    html+='<div class="mini-bar-row"><span class="mini-bar-label">'+labs[i]+'</span><div class="mini-bar-track"><div class="mini-bar-fill" style="width:'+pct+'%"></div></div><span class="mini-bar-val">'+v+'</span></div>';
+  });
+  html += '<div class="modal-section-title" style="margin-top:12px">Тренд</div>';
+  html += '<div style="font-size:13px;color:var(--text-2);padding:8px 0">'+k.trendTxt+' &nbsp;·&nbsp; Прогноз на следующий период: <strong>'+k.trendTxt+'</strong></div>';
+  document.getElementById('kpiModalBody').innerHTML = html;
+  openModal('kpiModal');
+}
+
+// ===================== MODAL: GOAL =====================
+var _allGoals = {};
+function buildGoalIndex() {
+  _allGoals = {};
+  function indexGoals(list) {
+    list.forEach(function(g){
+      _allGoals[g.id] = g;
+      if (g.children) indexGoals(g.children);
+    });
+  }
+  Object.keys(GOALS).forEach(function(preset){
+    Object.keys(GOALS[preset]).forEach(function(tab){
+      indexGoals(GOALS[preset][tab]);
+    });
+  });
+}
+
+function openGoalModal(id) {
+  var g = _allGoals[id];
+  if (!g) return;
+  document.getElementById('goalModalTitle').textContent = g.name;
+  var html = '';
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+  html += '<span class="goal-dot '+g.color+'" style="width:12px;height:12px"></span>';
+  html += '<span style="font-size:13px;color:var(--text-2)">Ответственный: <strong>'+g.owner+'</strong></span>';
+  if (g.target) html += '<span style="font-size:12px;color:var(--text-3);margin-left:auto">Срок: '+g.target+'</span>';
+  html += '</div>';
+  html += '<div class="goal-modal-pct '+g.color+'">'+g.pct+'%</div>';
+  html += '<div class="goal-modal-bar"><div class="goal-bar-fill '+g.color+'" style="width:'+Math.min(g.pct,100)+'%;height:100%;border-radius:4px"></div></div>';
+  if (g.children && g.children.length) {
+    html += '<div class="modal-section-title">Подцели и ключевые результаты</div>';
+    g.children.forEach(function(ch){
+      html += '<div style="background:#f9fafb;border-radius:8px;padding:10px 12px;margin-bottom:8px">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+      html += '<span class="goal-dot '+ch.color+'"></span>';
+      html += '<span style="font-size:13px;font-weight:600">'+ch.name+'</span>';
+      html += '<span style="margin-left:auto;font-size:12px;font-weight:700;color:var(--'+ch.color+')">'+ch.pct+'%</span>';
+      html += '</div>';
+      if (ch.krs) {
+        ch.krs.forEach(function(kr){
+          html += '<div class="modal-kr-row">';
+          html += '<span class="modal-kr-dot '+kr.color+'"></span>';
+          html += '<span class="modal-kr-name">'+kr.name+'</span>';
+          html += '<span class="modal-kr-vals">'+kr.fact+' / '+kr.plan+'</span>';
+          html += '<span class="modal-kr-pct '+kr.color+'">'+kr.pct+'%</span>';
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+    });
+  } else if (g.krs && g.krs.length) {
+    html += '<div class="modal-section-title">Ключевые результаты</div>';
+    g.krs.forEach(function(kr){
+      html += '<div class="modal-kr-row">';
+      html += '<span class="modal-kr-dot '+kr.color+'"></span>';
+      html += '<span class="modal-kr-name">'+kr.name+'</span>';
+      html += '<span class="modal-kr-vals">'+kr.fact+' / '+kr.plan+'</span>';
+      html += '<span class="modal-kr-pct '+kr.color+'">'+kr.pct+'%</span>';
+      html += '</div>';
+    });
+  }
+  document.getElementById('goalModalBody').innerHTML = html;
+  openModal('goalModal');
+}
+
+// ===================== MODAL: PROJECT =====================
+function openProjModal(idx) {
+  var p = PROJECTS[currentPreset][idx];
+  if (!p) return;
+  document.getElementById('projModalTitle').textContent = p.name;
+  var html = '';
+  html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">';
+  html += '<span class="status-badge '+p.status+'"><span class="status-dot"></span>'+p.label+'</span>';
+  html += '<span style="font-size:13px;color:var(--text-2)">Руководитель: <strong>'+p.owner+'</strong></span>';
+  html += '<span style="font-size:12px;color:var(--text-3);margin-left:auto">Срок: '+p.deadline+'</span>';
+  html += '</div>';
+  html += '<div class="modal-stats">';
+  html += '<div class="modal-stat"><div class="ms-label">Прогресс</div><div class="ms-value '+p.status+'">'+p.pct+'%</div></div>';
+  html += '<div class="modal-stat"><div class="ms-label">Дедлайн</div><div class="ms-value" style="font-size:16px">'+p.deadline+'</div></div>';
+  html += '<div class="modal-stat"><div class="ms-label">Связ. цель</div><div class="ms-value" style="font-size:12px;color:var(--primary-light)">'+p.goalLink+'</div></div>';
+  html += '</div>';
+  html += '<div style="background:#f9fafb;border-radius:8px;padding:8px 12px;margin-bottom:12px">';
+  html += '<div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden"><div style="width:'+p.pct+'%;height:100%;background:var(--'+p.status+');border-radius:4px"></div></div>';
+  html += '</div>';
+  html += '<div class="modal-section-title">Вехи проекта</div>';
+  p.milestones.forEach(function(m){
+    html += '<div class="milestone-row">';
+    html += '<span class="ms-icon">'+(m.done?'✅':'⭕')+'</span>';
+    html += '<span class="ms-name" style="'+(m.done?'color:var(--text-2);text-decoration:line-through':'')+'">'+m.name+'</span>';
+    html += '<span class="ms-date">'+m.date+'</span>';
+    html += '</div>';
+  });
+  document.getElementById('projModalBody').innerHTML = html;
+  openModal('projModal');
+}
+</script>
+
+<script>
+// ===================== ADMIN PANEL (FIX 2) =====================
+function openAdminPanel() {
+  document.getElementById('adminOverlay').classList.add('open');
+  renderAdminContent('blocks');
+  document.querySelectorAll('.admin-nav-item').forEach(function(el){
+    el.classList.toggle('active', el.dataset.section === 'blocks');
+  });
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminOverlay').classList.remove('open');
+  renderKPI();
+  renderGoals();
+  renderProjects();
+  renderDocs();
+  renderEmployees();
+}
+
+function switchAdminSection(section) {
+  adminSectionActive = section;
+  document.querySelectorAll('.admin-nav-item').forEach(function(el){
+    el.classList.toggle('active', el.dataset.section === section);
+  });
+  renderAdminContent(section);
+}
+
+function renderAdminContent(section) {
+  var el = document.getElementById('adminContent');
+  if (section === 'blocks') {
+    el.innerHTML = renderAdminBlocks();
+  } else if (section === 'metrics') {
+    el.innerHTML = renderAdminMetrics();
+  } else if (section === 'projects') {
+    el.innerHTML = renderAdminProjects();
+  } else if (section === 'documents') {
+    el.innerHTML = renderAdminDocuments();
+  }
+}
+
+function renderAdminBlocks() {
+  var blockDefs = [
+    {key:'kpi',       label:'Ключевые показатели (KPI)', desc:'Сводные метрики за выбранный период'},
+    {key:'goals',     label:'Цели',                      desc:'Иерархия OKR — годовые и квартальные'},
+    {key:'projects',  label:'Проекты',                   desc:'Критичные проекты с прогрессом и статусом'},
+    {key:'employees', label:'Сотрудники',                desc:'Структура и численность персонала'},
+    {key:'docs',      label:'Документы',                 desc:'Документы по роли и бизнес-направлению'}
+  ];
+  var html = '<div class="admin-section-title">Блоки дашборда</div>';
+  html += '<div class="admin-section-desc">Управление видимостью блоков. Скрытые блоки не отображаются на дашборде руководителя.</div>';
+  html += '<table class="admin-table"><thead><tr><th>Блок</th><th>Описание</th><th style="width:80px;text-align:center">Показывать</th></tr></thead><tbody>';
+  blockDefs.forEach(function(b){
+    var on = settingsState.blocks[b.key];
+    html += '<tr>';
+    html += '<td style="font-weight:600">'+b.label+'</td>';
+    html += '<td style="color:var(--text-muted)">'+b.desc+'</td>';
+    html += '<td style="text-align:center"><button class="admin-toggle'+(on?' on':'')+'" onclick="toggleAdminBlock(\''+b.key+'\',this)"></button></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+function toggleAdminBlock(key, btn) {
+  settingsState.blocks[key] = !settingsState.blocks[key];
+  btn.classList.toggle('on', settingsState.blocks[key]);
+}
+
+function renderAdminMetrics() {
+  var kpis = KPI[currentPreset][curPeriod];
+  var html = '<div class="admin-section-title">Метрики и KPI</div>';
+  html += '<div class="admin-section-desc">Настройка отображаемых показателей и порогов светофора. Изменения применяются к текущему пресету ('+PRESET_INFO[currentPreset].roleLabel+').</div>';
+  html += '<table class="admin-table"><thead><tr><th>Показатель</th><th>Тип</th><th style="width:100px">Порог зелёный</th><th style="width:100px">Порог жёлтый</th><th style="width:80px;text-align:center">Показывать</th></tr></thead><tbody>';
+  kpis.forEach(function(k, i){
+    var on = settingsState.kpiVisible[i];
+    html += '<tr>';
+    html += '<td style="font-weight:600">'+k.name+'<br><span style="font-size:11px;color:var(--text-muted);font-weight:400">'+(k.inverted ? '↓ снижать' : '↑ увеличивать')+'</span></td>';
+    html += '<td style="color:var(--text-muted);font-size:12px">'+k.unit+'</td>';
+    html += '<td><input class="admin-threshold-input" type="number" value="'+settingsState.thresholds.green+'" min="50" max="100"> %</td>';
+    html += '<td><input class="admin-threshold-input" type="number" value="'+settingsState.thresholds.yellow+'" min="30" max="95"> %</td>';
+    html += '<td style="text-align:center"><button class="admin-toggle'+(on?' on':'')+'" onclick="toggleAdminMetric('+i+',this)"></button></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+function toggleAdminMetric(i, btn) {
+  settingsState.kpiVisible[i] = !settingsState.kpiVisible[i];
+  btn.classList.toggle('on', settingsState.kpiVisible[i]);
+}
+
+function renderAdminProjects() {
+  var preset = PRESETS[currentPreset];
+  var total = preset.projectsTotal || preset.projects.length;
+  var html = '<div class="admin-section-title">Правила отображения проектов</div>';
+  html += '<div class="admin-section-desc">Настройка логики вывода проектов на дашборде. Всего в системе: <strong>'+total+'</strong> проектов для уровня '+PRESET_INFO[currentPreset].roleLabel+'.</div>';
+  html += '<div class="admin-projects-rules">';
+  html += '<div class="admin-rule-row"><span class="admin-rule-label">Максимум строк</span><span class="admin-rule-desc">Сколько проектов показывать на дашборде</span><input class="admin-threshold-input" type="number" value="5" min="3" max="10"></div>';
+  html += '<div class="admin-rule-row"><span class="admin-rule-label">Приоритет отображения</span><span class="admin-rule-desc">Критичные и под угрозой — в первую очередь</span><select class="admin-select"><option>Красные → Жёлтые → Зелёные</option><option>По дедлайну (ближайший)</option><option>Вручную (drag &amp; drop)</option></select></div>';
+  html += '<div class="admin-rule-row"><span class="admin-rule-label">Фильтр по цели</span><span class="admin-rule-desc">Показывать только проекты, связанные с целями уровня</span><select class="admin-select"><option>Все уровни целей</option><option>Только цели уровня 1</option><option>Только цели уровня 2</option></select></div>';
+  html += '<div class="admin-rule-row"><span class="admin-rule-label">Без привязанной цели</span><span class="admin-rule-desc">Показывать проекты без связанной цели OKR</span><button class="admin-toggle on" onclick="this.classList.toggle(\'on\')"></button></div>';
+  html += '</div>';
+  html += '<div style="margin-top:20px;padding:14px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a;font-size:13px;color:#92400e">';
+  html += '💡 <strong>Совет:</strong> На уровне компании (CEO) рекомендуется показывать не более 5–7 проектов: только критичные и стратегически важные. Детальный список доступен в разделе Управление проектами.';
+  html += '</div>';
+  return html;
+}
+
+function renderAdminDocuments() {
+  var docData = DOCS[currentPreset];
+  var html = '<div class="admin-section-title">Управление документами</div>';
+  html += '<div class="admin-section-desc">Состав документов для роли <strong>'+docData.roleLabel+'</strong>. Управление документами по категориям.</div>';
+  docData.groups.forEach(function(g){
+    html += '<div class="admin-doc-group">';
+    html += '<div class="admin-doc-group-title">'+g.group+'</div>';
+    g.items.forEach(function(item, i){
+      html += '<div class="admin-doc-item">';
+      html += '<input type="checkbox" id="adoc_'+i+'" checked>';
+      html += '<label for="adoc_'+i+'">'+item.icon+' '+item.name+' <span style="color:var(--text-muted);font-size:12px">· '+item.date+'</span></label>';
+      html += '</div>';
+    });
+    html += '<div style="margin-top:6px"><button style="font-size:12px;color:var(--primary);background:none;border:none;cursor:pointer;padding:0">+ Добавить документ</button></div>';
+    html += '</div>';
+  });
+  return html;
+}
+
+function applyAdminSettings() {
+  closeAdminPanel();
+  showToast('Настройки применены');
+}
+
+// ===================== INIT =====================
+buildGoalIndex();
+renderAll();
+</script>
+</body>
+</html>
